@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>WAVE_EXPLORER_NO_BEATS_DEFAULT</title>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+
+<style>
+body{background:#1e1e1e;color:white;font-family:monospace;padding:15px;}
+#plotBox{margin-top:15px;background:white;padding:10px;}
+label{display:block;margin-top:6px;}
+button{margin-top:10px;padding:8px 14px;background:#007acc;color:white;border:none;}
+</style>
+</head>
+
+<body>
+
+<h3>Wave Explorer (Space ↔ Time ↔ Field)</h3>
+
+<label>k1 <span id="k1v">2</span></label>
+<input type="range" min="0.5" max="5" step="0.1" value="2" id="k1">
+
+<label>k2 <span id="k2v">3</span></label>
+<input type="range" min="0.5" max="5" step="0.1" value="3" id="k2">
+
+<label>ω1 <span id="w1v">10</span></label>
+<input type="range" min="5" max="20" step="0.1" value="10" id="w1">
+
+<label>ω2 <span id="w2v">16</span></label>
+<input type="range" min="5" max="20" step="0.1" value="16" id="w2">
+
+<label>Time Index</label>
+<input type="range" min="0" max="799" value="0" id="timeSlider">
+
+<label>Probe Position</label>
+<input type="range" min="0" max="10" step="0.1" value="2" id="xSlider">
+
+<button onclick="run()">Update</button>
+
+<div id="plotBox">
+<img id="plot1">
+</div>
+
+<script>
+let pyodideReady = loadPyodide();
+
+function updateLabels(){
+    k1v.innerText=k1.value;
+    k2v.innerText=k2.value;
+    w1v.innerText=w1.value;
+    w2v.innerText=w2.value;
+}
+document.querySelectorAll("input").forEach(el=>el.addEventListener("input",updateLabels));
+updateLabels();
+
+async function run(){
+    let pyodide = await pyodideReady;
+    await pyodide.loadPackage(["numpy","matplotlib"]);
+
+    let code = `
+import numpy as np
+import matplotlib.pyplot as plt
+from io import BytesIO
+import base64
+
+plt.rcParams['figure.facecolor']='white'
+plt.rcParams['axes.facecolor']='white'
+
+k1=${k1.value}
+k2=${k2.value}
+w1=${w1.value}
+w2=${w2.value}
+
+x=np.linspace(0,10,400)
+t=np.linspace(0,40,800)
+
+X,T=np.meshgrid(x,t)
+
+u1=np.cos(k1*X - w1*T)
+u2=np.cos(k2*X - w2*T)
+u=u1+u2
+
+ti=${timeSlider.value}
+xp=${xSlider.value}
+pi=np.argmin(np.abs(x-xp))
+
+fig,axs=plt.subplots(3,1,figsize=(10,12))
+
+axs[0].plot(x,u[ti],label='Superposition',linewidth=2)
+axs[0].plot(x,u1[ti],'--',alpha=0.5,label='Wave 1')
+axs[0].plot(x,u2[ti],'--',alpha=0.5,label='Wave 2')
+axs[0].axvline(xp,color='red')
+axs[0].set_title('Amplitude vs Position (x)')
+axs[0].set_xlabel('Position x (m)')
+axs[0].set_ylabel('Amplitude')
+axs[0].legend()
+axs[0].grid()
+
+axs[1].plot(t,u[:,pi])
+axs[1].axvline(t[ti],color='red')
+axs[1].set_title('Amplitude vs Time (t)')
+axs[1].set_xlabel('Time t (s)')
+axs[1].set_ylabel('Amplitude')
+axs[1].grid()
+
+im=axs[2].imshow(u,extent=[x.min(),x.max(),t.max(),t.min()],aspect='auto')
+axs[2].axvline(xp,color='white')
+axs[2].axhline(t[ti],color='white')
+axs[2].set_title('Wave Field u(x,t)')
+axs[2].set_xlabel('Position x (m)')
+axs[2].set_ylabel('Time t (s)')
+plt.colorbar(im,ax=axs[2])
+
+plt.tight_layout()
+
+buf=BytesIO()
+plt.savefig(buf,format='png')
+buf.seek(0)
+base64.b64encode(buf.read()).decode()
+`
+
+    let img = await pyodide.runPythonAsync(code);
+    document.getElementById("plot1").src="data:image/png;base64,"+img;
+}
+</script>
+
+</body>
+</html>

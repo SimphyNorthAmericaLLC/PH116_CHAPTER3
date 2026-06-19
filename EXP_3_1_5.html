@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Standing Wave in a Closed-Open Tube</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    body {
+        background: #111;
+        color: white;
+        font-family: Arial;
+        text-align: center;
+    }
+    canvas {
+        background: white;
+        margin-top: 20px;
+    }
+    .controls {
+        margin-top: 20px;
+    }
+</style>
+</head>
+<body>
+
+<h2>Standing Wave in a 1 m Tube (Closed–Open)</h2>
+
+<div class="controls">
+    Harmonic (n):
+    <input type="range" id="nSlider" min="1" max="15" value="1" step="1">
+    <span id="nValue">1</span>
+    <br><br>
+    Frequency: <span id="freqValue"></span> Hz
+</div>
+
+<canvas id="waveChart" width="800" height="400"></canvas>
+
+<script>
+const L = 1;
+const v = 343;
+
+const ctx = document.getElementById('waveChart').getContext('2d');
+let chart;
+
+function generateData(n) {
+    let xVals = [];
+    let yVals = [];
+    let nodeX = [];
+    let nodeY = [];
+    let antiX = [];
+    let antiY = [];
+
+    let k = (2*n - 1) * Math.PI / (2*L);
+
+    for (let i = 0; i <= 200; i++) {
+        let x = i/200 * L;
+        let y = Math.sin(k*x);
+
+        xVals.push(x);
+        yVals.push(y);
+    }
+
+    for (let m = 0; m < n; m++) {
+        let node = 2*m*L/(2*n-1);
+        nodeX.push(node);
+        nodeY.push(0);
+
+        let anti = (2*m+1)*L/(2*n-1);
+        antiX.push(anti);
+        antiY.push(1);
+    }
+
+    return {xVals, yVals, nodeX, nodeY, antiX, antiY};
+}
+
+function updateChart(n) {
+    document.getElementById("nValue").innerText = n;
+
+    let f = (2*n - 1)*v/(4*L);
+    document.getElementById("freqValue").innerText = f.toFixed(2);
+
+    let data = generateData(n);
+
+    if (chart) chart.destroy();
+
+    chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.xVals,
+            datasets: [
+                {
+                    label: 'Displacement',
+                    data: data.yVals,
+                    borderWidth: 2,
+                    fill: false
+                },
+                {
+                    label: 'Nodes',
+                    data: data.nodeX.map((x,i)=>({x:x, y:data.nodeY[i]})),
+                    type: 'scatter',
+                    pointRadius: 5
+                },
+                {
+                    label: 'Antinodes',
+                    data: data.antiX.map((x,i)=>({x:x, y:data.antiY[i]})),
+                    type: 'scatter',
+                    pointRadius: 5
+                }
+            ]
+        },
+        options: {
+            scales: {
+                x: {
+                    type: 'linear',
+                    title: {display: true, text: 'Position (m)'}
+                },
+                y: {
+                    title: {display: true, text: 'Displacement'}
+                }
+            }
+        }
+    });
+}
+
+document.getElementById("nSlider").addEventListener("input", function() {
+    updateChart(parseInt(this.value));
+});
+
+updateChart(1);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Two-Wave Superposition — Phase Speeds and Envelope</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --bg:#0b0d12; --panel:#101522; --grid:#1a2234; --fg:#eaf0f6; --muted:#94a3b8;
+    --w1:#5cc8ff; --w2:#ff6b6b; --sum:#ffffff;
+    --env:#33f5c7; --envLow:#146b58;
+  }
+  body { margin:0; font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--fg); }
+  .wrap { max-width:1100px; margin:18px auto; padding:0 14px; }
+  h1 { font-size:1.25rem; margin:0 0 10px; font-weight:700; }
+  .card { background:var(--panel); border:1px solid #1f2a44; border-radius:14px; padding:12px 14px; box-shadow:0 2px 14px rgba(0,0,0,.25); }
+  .controls { display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); }
+  label { display:block; font-size:.9rem; color:var(--muted); margin-bottom:6px; }
+  input[type=number], select, button { width:100%; background:#0f1320; color:var(--fg); border:1px solid #22304e; border-radius:10px; padding:8px 10px; }
+  input[readonly] { opacity:.75; }
+  .legend { display:flex; gap:16px; font-size:.9rem; color:var(--muted); margin-bottom:8px; flex-wrap:wrap; }
+  .dot { width:12px; height:12px; border-radius:50%; display:inline-block; margin-right:6px; vertical-align:-2px; }
+  canvas { width:100%; height:360px; border-radius:14px; display:block; background:#070a12; border:1px solid #1f2a44; }
+  .metrics { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:10px; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+  .row { display:flex; gap:8px; align-items:center; }
+  .row span { min-width:42px; }
+  .btns { display:flex; gap:8px; }
+  .muted { color:var(--muted); }
+  .smallnote { font-size:.8rem; color:var(--muted); margin-top:6px; line-height:1.35; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Two-Wave Superposition — Phase Speeds and Envelope</h1>
+
+  <div class="card" style="margin-bottom:12px">
+    <div class="legend">
+      <div><span class="dot" style="background:var(--w1)"></span>Wave 1</div>
+      <div><span class="dot" style="background:var(--w2)"></span>Wave 2</div>
+      <div><span class="dot" style="background:var(--sum)"></span>Sum</div>
+      <div><span class="dot" style="background:var(--env)"></span>Envelope (±)</div>
+    </div>
+    <canvas id="cv" width="1040" height="360"></canvas>
+  </div>
+
+  <div class="controls">
+    <div class="card">
+      <label>Wave phase speeds</label>
+      <div class="row"><span class="muted">c₁</span><input id="c1" type="number" step="0.05" value="3.0"></div>
+      <div class="row"><span class="muted">c₂</span><input id="c2" type="number" step="0.05" value="3.0"></div>
+      <div class="row"><span class="muted">Δt</span><input id="dt" type="number" step="0.005" value="0.02"></div>
+      <div class="btns">
+        <button id="toggle">⏸︎ Pause</button>
+        <button id="reset">↺ Reset</button>
+      </div>
+      <div class="smallnote">The code uses ω₁=c₁k₁ and ω₂=c₂k₂. Set c₁=c₂ for a non-dispersive example; set c₁≠c₂ to show the envelope separating from the carrier.</div>
+    </div>
+
+    <div class="card">
+      <label>Wave 1</label>
+      <div class="row"><span class="muted">A₁</span><input id="A1" type="number" step="0.1" value="1.0"></div>
+      <div class="row"><span class="muted">k₁</span><input id="k1" type="number" step="0.05" value="2.0"></div>
+      <div class="row"><span class="muted">ω₁</span><input id="w1" type="number" step="0.05" value="6.0" readonly></div>
+      <div class="row"><span class="muted">Dir</span>
+        <select id="dir1">
+          <option value="right" selected>Right (cos(kx − ωt))</option>
+          <option value="left">Left (cos(kx + ωt))</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <label>Wave 2</label>
+      <div class="row"><span class="muted">A₂</span><input id="A2" type="number" step="0.1" value="1.0"></div>
+      <div class="row"><span class="muted">k₂</span><input id="k2" type="number" step="0.05" value="4.0"></div>
+      <div class="row"><span class="muted">ω₂</span><input id="w2" type="number" step="0.05" value="12.0" readonly></div>
+      <div class="row"><span class="muted">Dir</span>
+        <select id="dir2">
+          <option value="right" selected>Right (cos(kx − ωt))</option>
+          <option value="left">Left (cos(kx + ωt))</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card metrics" id="metrics"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+  const E=id=>document.getElementById(id);
+  const c1=E('c1'), c2=E('c2'), dtEl=E('dt');
+  const A1=E('A1'), k1=E('k1'), w1=E('w1'), dir1=E('dir1');
+  const A2=E('A2'), k2=E('k2'), w2=E('w2'), dir2=E('dir2');
+  const toggle=E('toggle'), reset=E('reset'), metrics=E('metrics');
+  let t=0, running=true;
+  const XMIN=-12, XMAX=12, YMIN=-2.6, YMAX=2.6;
+
+  function x2px(x){return (x-XMIN)*(cv.width/(XMAX-XMIN));}
+  function y2py(y){return (YMAX-y)*(cv.height/(YMAX-YMIN));}
+  function val(n){return parseFloat(n.value)||0;}
+  function fmt(x){return Number.isFinite(x) ? x.toFixed(3) : '—';}
+
+  function drawAxes(){
+    ctx.fillStyle='#070a12'; ctx.fillRect(0,0,cv.width,cv.height);
+    ctx.strokeStyle='#1a2234'; ctx.lineWidth=1;
+    const y0=y2py(0);
+    ctx.beginPath(); ctx.moveTo(0,y0); ctx.lineTo(cv.width,y0); ctx.stroke();
+    for(let gx=Math.ceil(XMIN); gx<=Math.floor(XMAX); gx++){
+      if(gx%2!==0) continue;
+      ctx.beginPath(); ctx.moveTo(x2px(gx),0); ctx.lineTo(x2px(gx),cv.height); ctx.stroke();
+    }
+  }
+
+  function computeParams(){
+    const K1=val(k1), K2=val(k2);
+    const C1=val(c1), C2=val(c2);
+    const W1=C1*K1, W2=C2*K2;
+    w1.value=W1.toFixed(3);
+    w2.value=W2.toFixed(3);
+    const A_1=val(A1), A_2=val(A2);
+    const s1=(dir1.value==='right')?-1:+1;
+    const s2=(dir2.value==='right')?-1:+1;
+    return {A1:A_1,A2:A_2,K1,K2,W1,W2,C1,C2,s1,s2};
+  }
+
+  function drawWave(P, which){
+    const color = which===1 ? '--w1' : '--w2';
+    const A = which===1 ? P.A1 : P.A2;
+    const K = which===1 ? P.K1 : P.K2;
+    const W = which===1 ? P.W1 : P.W2;
+    const s = which===1 ? P.s1 : P.s2;
+    ctx.lineWidth=1.5;
+    ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue(color);
+    ctx.beginPath(); let first=true;
+    for(let px=0;px<cv.width;px++){
+      const x=XMIN+(px/cv.width)*(XMAX-XMIN);
+      const y=A*Math.cos(K*x+s*W*t);
+      const py=y2py(y);
+      if(first){ctx.moveTo(x2px(x),py);first=false;}else ctx.lineTo(x2px(x),py);
+    }
+    ctx.stroke();
+  }
+
+  function draw(){
+    drawAxes();
+    const P=computeParams();
+
+    drawWave(P,1);
+    drawWave(P,2);
+
+    ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--sum');
+    ctx.lineWidth=2; ctx.beginPath(); let first=true;
+    for(let px=0;px<cv.width;px++){
+      const x=XMIN+(px/cv.width)*(XMAX-XMIN);
+      const y=P.A1*Math.cos(P.K1*x+P.s1*P.W1*t)+P.A2*Math.cos(P.K2*x+P.s2*P.W2*t);
+      const py=y2py(y);
+      if(first){ctx.moveTo(x2px(x),py);first=false;}else ctx.lineTo(x2px(x),py);
+    } ctx.stroke();
+
+    const colHi=getComputedStyle(document.documentElement).getPropertyValue('--env');
+    const colLo=getComputedStyle(document.documentElement).getPropertyValue('--envLow');
+    ctx.lineWidth=1.5;
+
+    for(const sign of [1,-1]){
+      ctx.strokeStyle = sign>0 ? colHi : colLo;
+      ctx.beginPath(); first=true;
+      for(let px=0;px<cv.width;px++){
+        const x=XMIN+(px/cv.width)*(XMAX-XMIN);
+        const dphi=(P.K1-P.K2)*x+(P.s1*P.W1-P.s2*P.W2)*t;
+        const Aenv=Math.sqrt(P.A1**2+P.A2**2+2*P.A1*P.A2*Math.cos(dphi));
+        const py=y2py(sign*Aenv);
+        if(first){ctx.moveTo(x2px(x),py);first=false;}else ctx.lineTo(x2px(x),py);
+      }
+      ctx.stroke();
+    }
+
+    const vCarrier = Math.abs(P.K1+P.K2)>1e-12 ? (P.W1+P.W2)/(P.K1+P.K2) : NaN;
+    const vGroup = Math.abs(P.K2-P.K1)>1e-12 ? (P.W2-P.W1)/(P.K2-P.K1) : NaN;
+    metrics.innerHTML=`
+      <div><b>c₁=ω₁/k₁</b>: ${fmt(P.C1)}</div>
+      <div><b>c₂=ω₂/k₂</b>: ${fmt(P.C2)}</div>
+      <div><b>k₁, ω₁</b>: ${fmt(P.K1)}, ${fmt(P.W1)} (${dir1.value})</div>
+      <div><b>k₂, ω₂</b>: ${fmt(P.K2)}, ${fmt(P.W2)} (${dir2.value})</div>
+      <div><b>carrier speed</b>: ${fmt(vCarrier)}</div>
+      <div><b>envelope/group speed</b>: ${fmt(vGroup)}</div>
+      <div class="muted">Definitions used: ω₁=c₁k₁, ω₂=c₂k₂, v_carrier=(ω₁+ω₂)/(k₁+k₂), v_env=(ω₂−ω₁)/(k₂−k₁).</div>`;
+  }
+
+  function step(){
+    const dt=Math.max(0.001,parseFloat(dtEl.value)||0.02);
+    if(running)t+=dt;
+    draw();
+    requestAnimationFrame(step);
+  }
+
+  [c1,c2,dtEl,A1,k1,dir1,A2,k2,dir2].forEach(el=>el.addEventListener('input',()=>{}));
+  toggle.addEventListener('click',()=>{running=!running;toggle.textContent=running?'⏸︎ Pause':'▶︎ Play';});
+  reset.addEventListener('click',()=>{t=0;});
+  requestAnimationFrame(step);
+})();
+</script>
+</body>
+</html>

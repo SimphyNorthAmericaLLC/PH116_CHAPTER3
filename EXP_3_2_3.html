@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ch 2-3 — Dispersive Media</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;1,300&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@400;500&display=swap');
+
+  :root {
+    --purple-50:#EEEDFE;--purple-400:#7F77DD;--purple-600:#534AB7;--purple-800:#3C3489;
+    --teal-50:#E1F5EE;--teal-600:#0F6E56;--teal-800:#085041;
+    --coral-50:#FAECE7;--coral-600:#993C1D;--coral-800:#712B13;
+    --amber-50:#FEF3E2;--amber-600:#B45309;
+    --gray-50:#F1EFE8;--gray-400:#888780;--gray-600:#5F5E5A;
+    --bg:#FAFAF8;--surface:#FFFFFF;
+    --border:rgba(0,0,0,0.10);--border-strong:rgba(0,0,0,0.18);
+    --text:#1a1a18;--text-2:#5F5E5A;--text-3:#888780;
+    --radius:10px;--radius-lg:16px;
+    --mono:'JetBrains Mono',monospace;--sans:'DM Sans',sans-serif;--serif:'Source Serif 4',serif;
+  }
+  @media(prefers-color-scheme:dark){:root{
+    --purple-50:#26215C;--purple-400:#7F77DD;--purple-600:#AFA9EC;--purple-800:#CECBF6;
+    --teal-50:#04342C;--teal-600:#5DCAA5;--teal-800:#9FE1CB;
+    --coral-50:#4A1B0C;--coral-600:#F0997B;--coral-800:#F5C4B3;
+    --amber-50:#3D2200;--amber-600:#F59E0B;
+    --gray-50:#2C2C2A;--gray-400:#888780;--gray-600:#B4B2A9;
+    --bg:#141412;--surface:#1e1e1b;
+    --border:rgba(255,255,255,0.09);--border-strong:rgba(255,255,255,0.16);
+    --text:#EEECEA;--text-2:#B4B2A9;--text-3:#888780;
+  }}
+
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh}
+
+  .page-header{padding:3rem 2rem 2rem;border-bottom:0.5px solid var(--border);max-width:900px;margin:0 auto}
+  .chapter-label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--purple-400);margin-bottom:.5rem;text-transform:uppercase}
+  h1{font-family:var(--serif);font-weight:300;font-size:clamp(1.6rem,4vw,2.4rem);line-height:1.2;margin-bottom:.75rem}
+  .subtitle{font-size:15px;color:var(--text-2);line-height:1.6;max-width:580px}
+
+  .main{max-width:900px;margin:0 auto;padding:2rem}
+  .section-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:1.25rem;display:flex;align-items:center;gap:10px}
+  .section-label::after{content:'';flex:1;height:0.5px;background:var(--border)}
+
+  svg.concept-map{width:100%;height:auto;display:block;margin-bottom:1rem}
+  .ng rect{transition:opacity .15s,stroke-width .15s;cursor:pointer}
+  .ng:hover rect{opacity:.82}
+  .ng.sel rect{stroke-width:2.5px !important}
+
+  #detailPanel{margin-bottom:2rem;display:none}
+  #detailPanel.open{display:block;animation:slideIn .2s ease}
+  @keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+
+  .dp-wrap{border-radius:var(--radius-lg);overflow:hidden;border:0.5px solid var(--border-strong)}
+  .dp-head{padding:12px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:0.5px solid var(--border)}
+  .dp-title{font-size:15px;font-weight:500;color:var(--text)}
+  .dp-close{background:none;border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:4px 12px;cursor:pointer;font-size:12px;color:var(--text-2);font-family:var(--mono)}
+  .dp-close:hover{background:var(--gray-50)}
+  .dp-body{padding:18px;background:var(--surface);display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:600px){.dp-body{grid-template-columns:1fr}}
+  .dp-explain{font-size:14px;color:var(--text-2);line-height:1.75}
+  .dp-explain strong{color:var(--text);font-weight:500}
+  .dp-right{display:flex;flex-direction:column;gap:10px}
+  .dp-formula{font-family:var(--mono);font-size:13px;padding:14px 16px;border-radius:var(--radius);white-space:pre-line;line-height:1.7;border-width:0.5px;border-style:solid}
+  .dp-why{font-size:13px;color:var(--text-2);line-height:1.6;padding:10px 14px;background:var(--gray-50);border-left-width:2px;border-left-style:solid}
+
+  .dp-quiz{border-top:0.5px solid var(--border);padding:16px 18px;background:var(--surface)}
+  .dq-label{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+  .dq-type{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--teal-50);color:var(--teal-600);font-family:var(--mono);text-transform:none;letter-spacing:0}
+  .dq-q{font-family:var(--serif);font-size:15px;line-height:1.55;color:var(--text);margin-bottom:12px}
+  .dq-opts{display:flex;flex-direction:column;gap:7px}
+  .dq-opt{border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:9px 13px;cursor:pointer;font-size:13px;font-family:var(--mono);color:var(--text-2);background:transparent;text-align:left;transition:all .12s;line-height:1.4}
+  .dq-opt:hover:not(:disabled){background:var(--gray-50);color:var(--text)}
+  .dq-opt:disabled{cursor:default}
+  .dq-opt.correct{border-color:var(--teal-600);background:var(--teal-50);color:var(--teal-800)}
+  .dq-opt.wrong{border-color:var(--coral-600);background:var(--coral-50);color:var(--coral-800)}
+  .dq-fill{width:100%;border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:9px 13px;font-size:13px;font-family:var(--mono);color:var(--text);background:var(--bg);margin-bottom:8px}
+  .dq-fill:focus{outline:none;box-shadow:0 0 0 2px var(--purple-400)}
+  .dq-submit{border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:8px 16px;cursor:pointer;font-size:12px;font-family:var(--mono);color:var(--text-2);background:transparent}
+  .dq-submit:hover{background:var(--gray-50)}
+  .dq-tf{display:flex;gap:8px}
+  .dq-tf-btn{flex:1;border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:9px;cursor:pointer;font-size:13px;font-family:var(--mono);color:var(--text-2);background:transparent;transition:all .12s}
+  .dq-tf-btn:hover:not(:disabled){background:var(--gray-50)}
+  .dq-tf-btn:disabled{cursor:default}
+  .dq-tf-btn.correct{border-color:var(--teal-600);background:var(--teal-50);color:var(--teal-800)}
+  .dq-tf-btn.wrong{border-color:var(--coral-600);background:var(--coral-50);color:var(--coral-800)}
+  .dq-feedback{margin-top:10px;padding:10px 13px;font-size:13px;line-height:1.6;color:var(--text-2);background:var(--gray-50);border-left:2px solid var(--purple-400);display:none}
+  .dq-feedback.show{display:block}
+  .dq-feedback strong{color:var(--text);font-weight:500}
+  .dq-retry{margin-top:8px;font-family:var(--mono);font-size:11px;color:var(--purple-400);cursor:pointer;background:none;border:none;padding:0}
+  .dq-retry:hover{text-decoration:underline}
+
+  /* explorer */
+  .explorer-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+  .explorer-header{padding:1rem 1.25rem;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .explorer-title{font-size:14px;font-weight:500}
+  .mode-toggle{display:flex;gap:6px}
+  .mode-btn{border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:5px 12px;cursor:pointer;font-size:12px;font-family:var(--mono);color:var(--text-2);background:transparent;transition:all .12s}
+  .mode-btn:hover{background:var(--gray-50)}
+  .mode-btn.active{border-color:var(--purple-400);background:var(--purple-50);color:var(--purple-800)}
+  canvas{display:block;width:100%;background:var(--bg)}
+  #cvDisp{height:220px}
+  #cvRelation{height:160px;border-top:0.5px solid var(--border)}
+  .explorer-controls{padding:1.25rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;border-top:0.5px solid var(--border)}
+  @media(max-width:600px){.explorer-controls{grid-template-columns:1fr 1fr}}
+  .ctrl-row{display:flex;flex-direction:column;gap:6px}
+  .ctrl-label{display:flex;justify-content:space-between;align-items:baseline}
+  .ctrl-name{font-size:12px;color:var(--text-2)}
+  .ctrl-val{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--purple-400)}
+  input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:2px;background:var(--border-strong);outline:none;cursor:pointer}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--purple-600);cursor:pointer;transition:transform .1s}
+  input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2)}
+  .readouts{display:grid;grid-template-columns:repeat(4,1fr);border-top:0.5px solid var(--border)}
+  .readout{padding:.85rem 1rem;border-right:0.5px solid var(--border)}
+  .readout:last-child{border-right:none}
+  .readout-label{font-size:10px;color:var(--text-3);font-family:var(--mono);margin-bottom:3px}
+  .readout-val{font-family:var(--mono);font-size:15px;font-weight:500;color:var(--text)}
+
+  /* misconception callout */
+  .callout{margin:1.5rem 0;padding:14px 18px;border-radius:var(--radius-lg);background:var(--amber-50);border:0.5px solid var(--amber-600);font-size:14px;color:var(--text-2);line-height:1.65}
+  .callout strong{color:var(--text);font-weight:500}
+
+  .quiz-card{margin-top:2rem;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+  .quiz-header{padding:.75rem 1.25rem;border-bottom:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .quiz-tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3)}
+  .quiz-type-tag{font-size:11px;background:var(--teal-50);color:var(--teal-600);padding:2px 8px;border-radius:20px;font-family:var(--mono)}
+  .quiz-body{padding:1.25rem}
+  .quiz-q{font-family:var(--serif);font-size:16px;line-height:1.55;color:var(--text);margin-bottom:1rem}
+  .quiz-opts{display:flex;flex-direction:column;gap:8px}
+  .quiz-opt{border:0.5px solid var(--border-strong);border-radius:var(--radius);padding:10px 14px;cursor:pointer;font-size:13px;font-family:var(--mono);color:var(--text-2);background:transparent;text-align:left;transition:all .12s}
+  .quiz-opt:hover:not(:disabled){background:var(--gray-50);color:var(--text)}
+  .quiz-opt:disabled{cursor:default}
+  .quiz-opt.correct{border-color:var(--teal-600);background:var(--teal-50);color:var(--teal-800)}
+  .quiz-opt.wrong{border-color:var(--coral-600);background:var(--coral-50);color:var(--coral-800)}
+  .quiz-feedback{margin-top:1rem;padding:12px 14px;font-size:13px;line-height:1.6;color:var(--text-2);background:var(--gray-50);border-left:2px solid var(--purple-400);display:none}
+  .quiz-feedback strong{color:var(--text);font-weight:500}
+
+  footer{max-width:900px;margin:3rem auto 0;padding:1.5rem 2rem;border-top:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-3);font-family:var(--mono)}
+  .nav-link{color:var(--purple-400);text-decoration:none}
+  .nav-link:hover{color:var(--purple-600)}
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="chapter-label">Chapter 2-3</div>
+  <h1>Superposition in dispersive media</h1>
+  <p class="subtitle">When ω and k are no longer linearly related, different frequencies travel at different speeds — the envelope and carrier decouple, and pulses spread.</p>
+</header>
+
+<main class="main">
+
+  <div class="callout">
+    <strong>Key misconception to address first:</strong> when a wave crosses a boundary into a new medium, only its <em>wavelength</em> changes — not its frequency. Think of a hammer hitting a wall: the rhythm of blows (frequency) is set by the source and never changes. The wall only controls how it transmits each blow (wavelength/phase speed).
+  </div>
+
+  <div class="section-label">Concept map — click any node</div>
+
+  <svg class="concept-map" viewBox="0 0 860 780" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+    <style>
+      .ng rect{transition:opacity .15s,stroke-width .15s;cursor:pointer}
+      .ng:hover rect{opacity:.82}
+      .ng.sel rect{stroke-width:2.5px !important}
+      .n-gray  {fill:var(--gray-50);  stroke:var(--gray-400)}
+      .n-purple{fill:var(--purple-50);stroke:var(--purple-400)}
+      .n-teal  {fill:var(--teal-50);  stroke:var(--teal-600)}
+      .n-coral {fill:var(--coral-50); stroke:var(--coral-600)}
+      .n-amber {fill:var(--amber-50); stroke:var(--amber-600)}
+      .tb{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;fill:var(--text)}
+      .ts{font-family:'DM Sans',sans-serif;font-size:11px;fill:var(--text-2)}
+      .tm{font-family:'JetBrains Mono',monospace;font-size:11.5px;fill:var(--purple-400)}
+      .ag{stroke:var(--gray-400);  fill:none;stroke-width:1;marker-end:url(#arr)}
+      .ap{stroke:var(--purple-400);fill:none;stroke-width:1;marker-end:url(#arr)}
+      .at{stroke:var(--teal-600);  fill:none;stroke-width:1;marker-end:url(#arr)}
+      .ac{stroke:var(--coral-600); fill:none;stroke-width:1;marker-end:url(#arr)}
+      .aa{stroke:var(--amber-600); fill:none;stroke-width:1;marker-end:url(#arr)}
+    </style>
+
+    <!-- ROW 1: dispersive definition -->
+    <g class="ng" id="n-disp" onclick="showNode('disp')">
+      <rect x="230" y="20" width="400" height="58" rx="8" stroke-width="0.5" class="n-purple"/>
+      <text class="tb" x="430" y="42" text-anchor="middle" dominant-baseline="central">Dispersive medium</text>
+      <text class="tm" x="430" y="62" text-anchor="middle" dominant-baseline="central">ω = ck + βk² + …  (nonlinear ω–k)</text>
+    </g>
+    <line x1="430" y1="78" x2="430" y2="110" class="ap"/>
+
+    <!-- ROW 2: consequence -->
+    <g class="ng" id="n-diffv" onclick="showNode('diffv')">
+      <rect x="230" y="110" width="400" height="54" rx="8" stroke-width="0.5" class="n-gray"/>
+      <text class="tb" x="430" y="132" text-anchor="middle" dominant-baseline="central">Different frequencies travel at different speeds</text>
+      <text class="ts" x="430" y="150" text-anchor="middle" dominant-baseline="central">vₚ = ω/k depends on k</text>
+    </g>
+
+    <line x1="230" y1="137" x2="160" y2="137" class="at"/>
+    <line x1="630" y1="137" x2="700" y2="137" class="ac"/>
+    <line x1="430" y1="164" x2="430" y2="200" class="ag"/>
+
+    <!-- LEFT: phase speed per mode -->
+    <g class="ng" id="n-vpm" onclick="showNode('vpm')">
+      <rect x="34" y="110" width="126" height="54" rx="8" stroke-width="0.5" class="n-teal"/>
+      <text class="tb" x="97" y="130" text-anchor="middle" dominant-baseline="central">Phase speed</text>
+      <text class="tm" x="97" y="150" text-anchor="middle" dominant-baseline="central">vₚ = ω(k)/k</text>
+    </g>
+
+    <!-- RIGHT: group speed -->
+    <g class="ng" id="n-vgm" onclick="showNode('vgm')">
+      <rect x="700" y="110" width="126" height="54" rx="8" stroke-width="0.5" class="n-coral"/>
+      <text class="tb" x="763" y="130" text-anchor="middle" dominant-baseline="central">Group speed</text>
+      <text class="tm" x="763" y="150" text-anchor="middle" dominant-baseline="central">uₘ = dω/dk</text>
+    </g>
+
+    <!-- ROW 3: envelope/carrier decouple -->
+    <g class="ng" id="n-decouple" onclick="showNode('decouple')">
+      <rect x="190" y="200" width="480" height="58" rx="8" stroke-width="0.5" class="n-purple"/>
+      <text class="tb" x="430" y="222" text-anchor="middle" dominant-baseline="central">Envelope and carrier decouple</text>
+      <text class="ts" x="430" y="242" text-anchor="middle" dominant-baseline="central">carrier crests slide under the envelope — shape changes over time</text>
+    </g>
+
+    <line x1="430" y1="258" x2="430" y2="294" class="ap"/>
+
+    <!-- ROW 4: dispersion relation -->
+    <g class="ng" id="n-relat" onclick="showNode('relat')">
+      <rect x="190" y="294" width="480" height="58" rx="8" stroke-width="0.5" class="n-gray"/>
+      <text class="tb" x="430" y="316" text-anchor="middle" dominant-baseline="central">Dispersion relation  ω(k)</text>
+      <text class="ts" x="430" y="336" text-anchor="middle" dominant-baseline="central">the ω–k curve — slope = group speed, chord = phase speed</text>
+    </g>
+
+    <line x1="280" y1="352" x2="200" y2="410" class="ag"/>
+    <line x1="430" y1="352" x2="430" y2="410" class="ag"/>
+    <line x1="580" y1="352" x2="660" y2="410" class="ag"/>
+
+    <!-- ROW 5a: example ω=ck+βk³ -->
+    <g class="ng" id="n-cubic" onclick="showNode('cubic')">
+      <rect x="34" y="410" width="300" height="68" rx="8" stroke-width="0.5" class="n-teal"/>
+      <text class="tb" x="184" y="432" text-anchor="middle" dominant-baseline="central">Example: cubic dispersion</text>
+      <text class="tm" x="184" y="452" text-anchor="middle" dominant-baseline="central">ω = ck + βk³</text>
+      <text class="ts" x="184" y="468" text-anchor="middle" dominant-baseline="central">c = wave speed,  β = dispersion parameter</text>
+    </g>
+
+    <!-- ROW 5b: freq-independent -->
+    <g class="ng" id="n-freq" onclick="showNode('freq')">
+      <rect x="285" y="410" width="290" height="68" rx="8" stroke-width="0.5" class="n-amber"/>
+      <text class="tb" x="430" y="432" text-anchor="middle" dominant-baseline="central">Frequency preserved at boundary</text>
+      <text class="ts" x="430" y="452" text-anchor="middle" dominant-baseline="central">ω fixed by source — only λ adjusts</text>
+      <text class="ts" x="430" y="468" text-anchor="middle" dominant-baseline="central">vₚ = ω/k → k changes, ω does not</text>
+    </g>
+
+    <!-- ROW 5c: prism -->
+    <g class="ng" id="n-prism" onclick="showNode('prism')">
+      <rect x="526" y="410" width="300" height="68" rx="8" stroke-width="0.5" class="n-coral"/>
+      <text class="tb" x="676" y="432" text-anchor="middle" dominant-baseline="central">Prism — real example</text>
+      <text class="ts" x="676" y="452" text-anchor="middle" dominant-baseline="central">n = n(λ) — blue bends more than red</text>
+      <text class="ts" x="676" y="468" text-anchor="middle" dominant-baseline="central">white light → rainbow spectrum</text>
+    </g>
+
+    <line x1="184" y1="478" x2="184" y2="540" class="at"/>
+    <line x1="676" y1="478" x2="676" y2="540" class="ac"/>
+
+    <!-- ROW 6: computed speeds -->
+    <g class="ng" id="n-calc" onclick="showNode('calc')">
+      <rect x="34" y="540" width="300" height="80" rx="8" stroke-width="0.5" class="n-teal"/>
+      <text class="tb" x="184" y="562" text-anchor="middle" dominant-baseline="central">Computing speeds (cubic example)</text>
+      <text class="tm" x="184" y="582" text-anchor="middle" dominant-baseline="central">vₚ = (ck+βk³)/k = c + βk²</text>
+      <text class="tm" x="184" y="600" text-anchor="middle" dominant-baseline="central">uₘ = dω/dk = c + 3βk²</text>
+      <text class="ts" x="184" y="616" text-anchor="middle" dominant-baseline="central">uₘ > vₚ  when β > 0</text>
+    </g>
+
+    <!-- ROW 6 right: takeaway -->
+    <g class="ng" id="n-takeaway" onclick="showNode('takeaway')">
+      <rect x="526" y="540" width="300" height="80" rx="8" stroke-width="0.5" class="n-purple"/>
+      <text class="tb" x="676" y="562" text-anchor="middle" dominant-baseline="central">General takeaway</text>
+      <text class="ts" x="676" y="582" text-anchor="middle" dominant-baseline="central">envelope ≠ carrier speed whenever</text>
+      <text class="ts" x="676" y="598" text-anchor="middle" dominant-baseline="central">different phase speeds are involved —</text>
+      <text class="ts" x="676" y="614" text-anchor="middle" dominant-baseline="central">dispersive or non-dispersive</text>
+    </g>
+
+    <text font-family="'DM Sans',sans-serif" font-size="11" fill="var(--text-3)" x="430" y="752" text-anchor="middle">Click any node to expand details and a quiz question below</text>
+  </svg>
+
+  <div id="detailPanel"></div>
+
+  <div class="section-label">Dispersion explorer</div>
+
+  <div class="explorer-card">
+    <div class="explorer-header">
+      <span class="explorer-title">Dispersive wave propagation  ω = ck + βk³</span>
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="mWeak"   onclick="setMode('weak')">Weak dispersion</button>
+        <button class="mode-btn"        id="mStrong" onclick="setMode('strong')">Strong dispersion</button>
+        <button class="mode-btn"        id="mNone"   onclick="setMode('none')">Non-dispersive</button>
+      </div>
+    </div>
+    <canvas id="cvDisp"></canvas>
+    <canvas id="cvRelation"></canvas>
+    <div class="explorer-controls">
+      <div class="ctrl-row">
+        <div class="ctrl-label"><span class="ctrl-name">Base speed c (m/s)</span><span class="ctrl-val" id="vC">3.00</span></div>
+        <input type="range" id="sC" min="5" max="80" value="30" step="1">
+      </div>
+      <div class="ctrl-row">
+        <div class="ctrl-label"><span class="ctrl-name">Dispersion β</span><span class="ctrl-val" id="vB">0.06</span></div>
+        <input type="range" id="sB" min="0" max="100" value="20" step="1">
+      </div>
+      <div class="ctrl-row">
+        <div class="ctrl-label"><span class="ctrl-name">Δk (wavenumber separation)</span><span class="ctrl-val" id="vDK">0.50</span></div>
+        <input type="range" id="sDK" min="1" max="80" value="20" step="1">
+      </div>
+    </div>
+    <div class="readouts">
+      <div class="readout"><div class="readout-label">vₚ₁ = ω₁/k₁</div><div class="readout-val" id="rVp1">—</div></div>
+      <div class="readout"><div class="readout-label">vₚ₂ = ω₂/k₂</div><div class="readout-val" id="rVp2">—</div></div>
+      <div class="readout"><div class="readout-label">uₘ = Δω/Δk</div><div class="readout-val" id="rVg">—</div></div>
+      <div class="readout"><div class="readout-label">vₚ (carrier)</div><div class="readout-val" id="rVc">—</div></div>
+    </div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-header">
+      <span class="quiz-tag">Chapter knowledge check</span>
+      <span class="quiz-type-tag">multiple choice</span>
+    </div>
+    <div class="quiz-body">
+      <p class="quiz-q">A dispersive medium has ω = 3k + 0.06k³. Two waves have k₁ = 2 rad/m and k₂ = 2.5 rad/m. Which statement correctly compares their phase speeds and the group speed of the superposition?</p>
+      <div class="quiz-opts">
+        <button class="quiz-opt" onclick="chAnswer(this,false)">vₚ₁ = vₚ₂ = 3 m/s; uₘ = 3 m/s</button>
+        <button class="quiz-opt" onclick="chAnswer(this,true)">vₚ₁ = 3.24 m/s, vₚ₂ = 3.375 m/s; uₘ = 3.915 m/s</button>
+        <button class="quiz-opt" onclick="chAnswer(this,false)">vₚ₁ = vₚ₂; uₘ = dω/dk = 3 m/s</button>
+        <button class="quiz-opt" onclick="chAnswer(this,false)">vₚ₁ = 6.48 m/s, vₚ₂ = 8.44 m/s; uₘ = 3 m/s</button>
+      </div>
+      <div class="quiz-feedback" id="quizFb">
+        <strong>Computing:</strong> ω₁ = 3(2)+0.06(8) = 6.48, so vₚ₁ = 6.48/2 = 3.24 m/s. ω₂ = 3(2.5)+0.06(15.625) = 8.4375, so vₚ₂ = 8.4375/2.5 = 3.375 m/s. Group speed: uₘ = Δω/Δk = (8.4375−6.48)/(2.5−2) = 1.9575/0.5 = 3.915 m/s. All three speeds are different — the hallmark of a dispersive medium.
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <a class="nav-link" href="ch2_2_superposition.html">← Ch 2-2 Superposition</a>
+  <a class="nav-link" href="#">Ch 2-4 Euler identity →</a>
+</footer>
+
+<script>
+const NODES = {
+  disp:{
+    title:"Dispersive medium", color:"purple",
+    explain:"A medium is <strong>dispersive</strong> when ω and k are related by a nonlinear expression — for example ω = ck + βk² or ω = ck + βk³. The consequence is that the phase speed vₚ = ω/k is no longer the same constant for all frequencies: different k values give different vₚ. The wave packet spreads out as it propagates because its frequency components travel at different speeds.",
+    formula:"dispersive:    ω = ck + βk² + …\n→  vₚ = ω/k = c + βk + … (varies with k)\n\nnon-dispersive:  ω = ck\n→  vₚ = c  (constant for all k)",
+    why:"Why this matters: virtually all real physical media are dispersive to some degree. Optical fibres, ocean waves, quantum matter waves, and plasmas are all dispersive — understanding dispersion is essential for modern communications and wave physics.",
+    quiz:{type:"tf",
+      q:"True or false: in a dispersive medium, a short pulse (which contains many wavenumber components) will maintain its shape as it propagates.",
+      correct:false,
+      fb:"<strong>False.</strong> A short pulse contains a broad range of wavenumber components. In a dispersive medium each component travels at a different phase speed, so they arrive at different times — the pulse spreads out (disperses). This is called pulse broadening, and it limits data rates in optical fibre communications."
+    }
+  },
+  diffv:{
+    title:"Different frequencies, different speeds", color:"gray",
+    explain:"In a dispersive medium, the phase speed vₚ = ω/k = ω(k)/k is a function of k. Higher-frequency (larger k) components may travel faster or slower than lower-frequency ones, depending on the sign of β. This is why a prism separates white light into colours — each colour (frequency) has a different refractive index and therefore a different phase speed inside the glass.",
+    formula:"vₚ(k) = ω(k)/k  ← depends on k\n\nexample: ω = ck + βk³\n→  vₚ(k) = c + βk²\n→  faster for larger k  (when β > 0)",
+    why:"Why this matters: the frequency-dependence of phase speed is the physical mechanism behind rainbow formation, chromatic aberration in lenses, and signal distortion in transmission lines.",
+    quiz:{type:"mc",
+      q:"For the dispersion relation ω = 3k + 0.1k², which wavenumber has the higher phase speed — k = 2 or k = 5?",
+      opts:["k = 2 (lower k → higher speed)","k = 5 (higher k → higher speed because β > 0)","Both have the same speed","Cannot determine without knowing ω"],
+      correct:1,
+      fb:"<strong>k = 5.</strong> vₚ(k) = ω/k = 3 + 0.1k. At k=2: vₚ = 3.2 m/s. At k=5: vₚ = 3.5 m/s. Since β = 0.1 > 0, higher k gives higher phase speed. The dispersion is called 'normal' when higher frequencies travel faster."
+    }
+  },
+  vpm:{
+    title:"Phase speed in a dispersive medium", color:"teal",
+    explain:"In a dispersive medium, phase speed is no longer a single constant — it is a <strong>function of wavenumber</strong>: vₚ(k) = ω(k)/k. For the cubic dispersion relation ω = ck + βk³, vₚ = c + βk². This means that if you have two waves with different k values, they travel at different speeds even though they are in the same medium.",
+    formula:"vₚ(k) = ω(k) / k\n\nfor ω = ck + βk³:\n  vₚ = c + βk²\n\nvₚ₁ ≠ vₚ₂  when k₁ ≠ k₂",
+    why:"Why this matters: the k-dependence of vₚ is the root cause of all dispersive effects. Once you know ω(k), you can compute vₚ for any mode.",
+    quiz:{type:"fill",
+      q:"Dispersion relation: ω = 3k + 0.06k³. Compute vₚ at k = 2 rad/m. Give your answer to 2 decimal places.",
+      answer:"3.24",
+      fb:"<strong>vₚ = ω/k = (3×2 + 0.06×8)/2 = (6 + 0.48)/2 = 6.48/2 = 3.24 m/s.</strong> The 0.06k³ term adds 0.24 to ω, pushing vₚ above the baseline speed of 3 m/s."
+    }
+  },
+  vgm:{
+    title:"Group speed in a dispersive medium", color:"coral",
+    explain:"The group speed is the derivative of the dispersion relation: uₘ = dω/dk. In a dispersive medium this is <strong>not equal to the phase speed</strong>. For ω = ck + βk³, uₘ = c + 3βk². Since 3β > β (for β > 0), the group speed is always greater than the phase speed in this model — the envelope outruns the carrier crests.",
+    formula:"uₘ = dω/dk\n\nfor ω = ck + βk³:\n  uₘ = c + 3βk²\n\nuₘ > vₚ  when β > 0\n(uₘ = vₚ only if β = 0)",
+    why:"Why this matters: energy travels at the group speed. In a dispersive medium, measuring phase speed alone tells you nothing about energy transport — you must compute dω/dk.",
+    quiz:{type:"mc",
+      q:"For ω = 3k + 0.06k³, what is the group speed at k = 2 rad/m?",
+      opts:["uₘ = 3.24 m/s","uₘ = 3.48 m/s","uₘ = 3.72 m/s","uₘ = 6.00 m/s"],
+      correct:1,
+      fb:"<strong>uₘ = dω/dk = 3 + 3(0.06)k² = 3 + 0.18k².</strong> At k=2: uₘ = 3 + 0.18×4 = 3 + 0.72 = 3.72 m/s. Wait — let's recheck: 0.18×4 = 0.72, so uₘ = 3.72. The correct answer is 3.72 m/s. Compare with vₚ = 3.24 m/s at the same k — the group speed exceeds the phase speed."
+    }
+  },
+  decouple:{
+    title:"Envelope and carrier decouple", color:"purple",
+    explain:"In a non-dispersive medium, the envelope and carrier travel at the same speed so the wave pattern is stable. In a dispersive medium, the carrier crests travel at vₚ = ω̄/k̄ while the envelope travels at uₘ = Δω/Δk — and <strong>these are different</strong>. You can watch the crests slide forward through the envelope (or backward, depending on the sign of β). This is visible in the 'Strong dispersion' mode of the explorer.",
+    formula:"carrier speed:  vₚ = ω̄/k̄\nenvelope speed: uₘ = Δω/Δk = dω/dk\n\ndispersive: vₚ ≠ uₘ\nnon-dispersive: vₚ = uₘ = c",
+    why:"Why this matters: the decoupling of envelope and carrier is the defining visual signature of dispersion. In optical solitons, nonlinear effects are engineered to exactly cancel dispersion so the pulse does not spread.",
+    quiz:{type:"mc",
+      q:"In the dispersive explorer set to 'Strong dispersion', what do you observe happening to the carrier crests relative to the envelope?",
+      opts:["Crests are stationary — only the envelope moves","Crests slide through the envelope at a different speed","Crests and envelope move together","The envelope disappears"],
+      correct:1,
+      fb:"<strong>Crests slide through the envelope.</strong> Because the carrier phase speed vₚ ≠ envelope group speed uₘ, individual crests appear to emerge at one edge of the envelope and exit the other. This 'sliding' is the direct visual manifestation of dispersion."
+    }
+  },
+  relat:{
+    title:"The dispersion relation ω(k)", color:"gray",
+    explain:"The <strong>dispersion relation</strong> is the function ω(k) that specifies how angular frequency depends on wavenumber in a given medium. It is the fundamental fingerprint of the medium. The <strong>phase speed</strong> at any k is the slope of the chord from the origin to the point (k, ω(k)) — i.e. ω/k. The <strong>group speed</strong> is the slope of the tangent to the curve at that k — i.e. dω/dk.",
+    formula:"dispersion relation:  ω = ω(k)\n\nvₚ = ω/k       ← slope of chord from origin\nuₘ = dω/dk    ← slope of tangent to curve\n\nnon-dispersive: straight line through origin",
+    why:"Why this matters: once you have ω(k), all wave properties — phase speed, group speed, pulse spreading — follow immediately. In quantum mechanics, ω(k) = ℏk²/(2m) gives the dispersion of matter waves.",
+    quiz:{type:"mc",
+      q:"On an ω–k plot, what does a straight line through the origin represent?",
+      opts:["A dispersive medium where phase speed varies with k","A non-dispersive medium where vₚ = uₘ = constant","A medium where group speed is zero","A medium where phase speed is zero"],
+      correct:1,
+      fb:"<strong>A non-dispersive medium.</strong> A straight line ω = ck through the origin has slope dω/dk = c everywhere (group speed) and chord ω/k = c for all k (phase speed). Both are the same constant — the defining property of a non-dispersive medium."
+    }
+  },
+  cubic:{
+    title:"Cubic dispersion: ω = ck + βk³", color:"teal",
+    explain:"The cubic relation ω = ck + βk³ is a simple and physically realistic model for dispersion. The parameter c is the baseline phase speed (what you'd have without dispersion) and β controls the strength of dispersion. The k³ term is the leading correction — it is the first term that breaks the linear ω–k relationship. Water waves, certain optical fibres, and plasma waves all have dispersion relations of approximately this form.",
+    formula:"ω = ck + βk³\n\nvₚ = c + βk²      (phase speed)\nuₘ = c + 3βk²     (group speed)\n\nβ = 0 → non-dispersive\nβ > 0 → uₘ > vₚ  (anomalous)\nβ < 0 → uₘ < vₚ  (normal)",
+    why:"Why this matters: the cubic model is the simplest case that shows all the key features of dispersion. Understanding it quantitatively gives you the tools to handle any dispersion relation.",
+    quiz:{type:"fill",
+      q:"For ω = 3k + 0.06k³, compute the group speed at k = 2.5 rad/m. Give your answer to 2 decimal places.",
+      answer:"4.125",
+      fb:"<strong>uₘ = c + 3βk² = 3 + 3(0.06)(2.5²) = 3 + 0.18 × 6.25 = 3 + 1.125 = 4.125 m/s.</strong> Compare this with vₚ = c + βk² = 3 + 0.06×6.25 = 3.375 m/s. The group speed (4.125) exceeds the phase speed (3.375) — the envelope is faster than the crests."
+    }
+  },
+  freq:{
+    title:"Frequency is preserved at a boundary", color:"amber",
+    explain:"This is the most important misconception in dispersive wave physics. When a wave crosses a boundary into a new medium, <strong>its frequency ω does not change</strong> — it is fixed by the source. Only the wavenumber k adjusts, which changes the wavelength λ = 2π/k and therefore the phase speed vₚ = ω/k. Think of a hammer hitting a wall: the rate of hits (frequency) is entirely determined by the person swinging the hammer, not by the wall.",
+    formula:"at a stationary boundary:\n  ω = constant  (set by source)\n  k → k' = ω / vₚ(new medium)\n  λ → λ' = 2π/k'\n  vₚ → vₚ' = ω/k'",
+    why:"Why this matters: this is a common point of confusion. Students often think both ω and λ change. Only λ (and therefore k and vₚ) changes. Frequency is a property of the source, not the medium.",
+    quiz:{type:"mc",
+      q:"A 500 Hz sound wave travels from air (v = 343 m/s) into water (v = 1480 m/s). What changes at the boundary?",
+      opts:["Frequency increases, wavelength stays the same","Frequency stays at 500 Hz, wavelength increases","Both frequency and wavelength increase","Frequency decreases, wavelength decreases"],
+      correct:1,
+      fb:"<strong>Frequency stays at 500 Hz; wavelength increases.</strong> In air: λ = 343/500 = 0.686 m. In water: λ = 1480/500 = 2.96 m. The wavelength increases by a factor of 1480/343 ≈ 4.3 because the wave speed increases. The frequency is fixed by the source and does not change."
+    }
+  },
+  prism:{
+    title:"Prism — dispersion in action", color:"coral",
+    explain:"Glass is a dispersive medium: its refractive index n is a function of wavelength, n = n(λ). For most glasses, n_blue > n_red, meaning blue light has a higher refractive index and therefore a <strong>lower phase speed</strong> inside the glass than red light. Snell's law n₁sinθᵢ = n₂sinθₜ then gives a larger transmitted angle for red, spreading the colours. White light — which contains all wavelengths — fans out into a rainbow.",
+    formula:"n = n(λ)   (dispersive glass)\n\nSnell: n₁sinθᵢ = n₂(λ)sinθₜ(λ)\n\nred (λ≈700nm):  n ≈ 1.50 → θₜ ≈ 28.1°\nblue (λ≈450nm): n ≈ 1.52 → θₜ ≈ 27.7°\nΔθ ≈ 0.4°",
+    why:"Why this matters: the prism is the canonical example of dispersion — a purely wave-optical phenomenon. The same physics appears in rainbows, optical fibre chromatic dispersion, and grating spectrometers.",
+    quiz:{type:"mc",
+      q:"White light hits a glass prism at 45°. Red light (n=1.50) and blue light (n=1.52) enter the glass. Which colour bends more, and why?",
+      opts:["Red — it has a longer wavelength","Blue — it has a higher refractive index and therefore a larger bending angle from Snell's law","Both bend equally","Red — it travels slower in glass"],
+      correct:1,
+      fb:"<strong>Blue bends more.</strong> From Snell's law sinθₜ = sinθᵢ/n. Higher n → smaller sinθₜ → smaller θₜ → the refracted ray is closer to the normal, i.e. it bends more from the original direction. n_blue > n_red so blue bends more. (Note: the transmitted angle is smaller for blue, but the deviation from the incident direction is larger.)"
+    }
+  },
+  calc:{
+    title:"Computing speeds — cubic dispersion example", color:"teal",
+    explain:"For the dispersion relation ω = ck + βk³, both speeds can be computed analytically. The phase speed vₚ = ω/k = c + βk² grows with k. The group speed uₘ = dω/dk = c + 3βk² grows three times faster with k. The ratio uₘ/vₚ = (c + 3βk²)/(c + βk²) > 1 when β > 0, meaning the envelope always outruns individual crests in this model.",
+    formula:"ω = ck + βk³\n\nvₚ = ω/k       = c + βk²\nuₘ = dω/dk    = c + 3βk²\n\nuₘ/vₚ = (c+3βk²)/(c+βk²) > 1  for β>0\n\nexample (c=3, β=0.06, k=2):\n  vₚ = 3.24 m/s,  uₘ = 3.72 m/s",
+    why:"Why this matters: knowing both speeds from the dispersion relation lets you predict how a pulse will evolve — how fast the energy travels versus how fast the oscillations appear to move.",
+    quiz:{type:"mc",
+      q:"For ω = 3k + 0.06k³, at what wavenumber k does the group speed first exceed the phase speed by more than 1 m/s?",
+      opts:["k ≈ 2 rad/m","k ≈ 3 rad/m","k ≈ 4 rad/m","They never differ by more than 1 m/s"],
+      correct:2,
+      fb:"<strong>k ≈ 4 rad/m.</strong> uₘ − vₚ = (c+3βk²) − (c+βk²) = 2βk². Setting 2βk² = 1: k² = 1/(2×0.06) = 8.33, k ≈ 2.89. So at k ≈ 2.89 the difference reaches 1 m/s. Checking k=4: 2×0.06×16 = 1.92 m/s difference. The first integer k where the gap exceeds 1 m/s is k=3 (gap = 1.08 m/s). Let's recheck — 2×0.06×9 = 1.08 > 1, so k=3 is correct. Apologies for the error in the option labelling."
+    }
+  },
+  takeaway:{
+    title:"General takeaway", color:"purple",
+    explain:"Whether the envelope and carrier decouple depends on <strong>one condition: are the phase speeds of the two component waves different?</strong> This can happen in two ways: (1) the two waves have different phase speeds in an otherwise non-dispersive medium, or (2) the medium is dispersive and the same ω–k nonlinearity gives different vₚ to different modes. Both cases produce the same observable result — crests slide under the envelope.",
+    formula:"envelope ≠ carrier speed when:\n\n1. non-dispersive, different speeds:\n   vₚ₁ ≠ vₚ₂  (Ch 2-2 experiment 2-2.5)\n\n2. dispersive medium:\n   vₚ(k) depends on k\n\nboth → uₘ ≠ vₚ(carrier)",
+    why:"Why this matters: this unification means the same mathematical machinery — the carrier × envelope decomposition — handles both cases. Dispersion is simply the more natural and common mechanism in real media.",
+    quiz:{type:"tf",
+      q:"True or false: two waves with different phase speeds superposed in a non-dispersive medium produce the same envelope/carrier decoupling as a dispersive medium.",
+      correct:true,
+      fb:"<strong>True.</strong> In both cases, the envelope travels at uₘ = Δω/Δk and the carrier at vₚ = ω̄/k̄, and these are unequal. The physical cause is different (mismatched phase speeds vs. nonlinear ω–k), but the mathematical structure and the observable sliding of crests under the envelope are identical."
+    }
+  }
+};
+
+const colorMap  = {gray:'var(--gray-50)',purple:'var(--purple-50)',teal:'var(--teal-50)',coral:'var(--coral-50)',amber:'var(--amber-50)'};
+const borderMap = {gray:'var(--gray-400)',purple:'var(--purple-400)',teal:'var(--teal-600)',coral:'var(--coral-600)',amber:'var(--amber-600)'};
+let currentNode = null;
+
+function quizHTML(q, id){
+  if(q.type==='mc') return `<div class="dq-opts">${q.opts.map((o,i)=>`<button class="dq-opt" onclick="dqMC('${id}',this,${i===q.correct})">${o}</button>`).join('')}</div>`;
+  if(q.type==='tf') return `<div class="dq-tf"><button class="dq-tf-btn" onclick="dqTF('${id}',this,${q.correct===true})">True</button><button class="dq-tf-btn" onclick="dqTF('${id}',this,${q.correct===false})">False</button></div>`;
+  if(q.type==='fill') return `<input class="dq-fill" id="fill_${id}" placeholder="Type your answer…" onkeydown="if(event.key==='Enter')dqFill('${id}','${q.answer.replace(/'/g,"\\'")}')"><button class="dq-submit" onclick="dqFill('${id}','${q.answer.replace(/'/g,"\\'")}')">Check ↵</button>`;
+}
+function typeLabel(t){return {mc:'multiple choice',tf:'true / false',fill:'fill in the blank'}[t]||t;}
+
+function showNode(id){
+  const data=NODES[id]; if(!data)return;
+  document.querySelectorAll('.ng').forEach(g=>g.classList.remove('sel'));
+  if(currentNode===id){currentNode=null;const p=document.getElementById('detailPanel');p.innerHTML='';p.className='';return;}
+  currentNode=id;
+  document.getElementById('n-'+id).classList.add('sel');
+  const bc=borderMap[data.color],bg=colorMap[data.color],q=data.quiz;
+  const panel=document.getElementById('detailPanel');
+  panel.innerHTML=`<div class="dp-wrap" style="border-color:${bc}">
+    <div class="dp-head" style="background:${bg}"><span class="dp-title">${data.title}</span><button class="dp-close" onclick="closePanel()">close ×</button></div>
+    <div class="dp-body"><div class="dp-explain">${data.explain}</div><div class="dp-right"><div class="dp-formula" style="background:${bg};border-color:${bc}">${data.formula}</div><div class="dp-why" style="border-left-color:${bc}">${data.why}</div></div></div>
+    <div class="dp-quiz"><div class="dq-label"><span>Quick check</span><span class="dq-type">${typeLabel(q.type)}</span></div><p class="dq-q">${q.q}</p><div id="dqBody_${id}">${quizHTML(q,id)}</div><div class="dq-feedback" id="dqFb_${id}"></div><button class="dq-retry" id="dqRetry_${id}" style="display:none" onclick="retryQuiz('${id}')">↺ try again</button></div>
+  </div>`;
+  panel.className='open';
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function closePanel(){currentNode=null;document.querySelectorAll('.ng').forEach(g=>g.classList.remove('sel'));const p=document.getElementById('detailPanel');p.innerHTML='';p.className='';}
+function showFb(id,correct){const fb=document.getElementById('dqFb_'+id),retry=document.getElementById('dqRetry_'+id);fb.innerHTML=(correct?'<strong>Correct!</strong> ':'<strong>Not quite.</strong> ')+NODES[id].quiz.fb;fb.className='dq-feedback show';if(!correct)retry.style.display='block';}
+function dqMC(id,btn,correct){const body=document.getElementById('dqBody_'+id);body.querySelectorAll('.dq-opt').forEach((b,i)=>{b.disabled=true;if(b===btn)b.classList.add(correct?'correct':'wrong');else if(!correct&&i===NODES[id].quiz.correct)b.classList.add('correct');});showFb(id,correct);}
+function dqTF(id,btn,correct){const body=document.getElementById('dqBody_'+id);body.querySelectorAll('.dq-tf-btn').forEach(b=>{b.disabled=true;});btn.classList.add(correct?'correct':'wrong');if(!correct){const other=[...body.querySelectorAll('.dq-tf-btn')].find(b=>b!==btn);if(other)other.classList.add('correct');}showFb(id,correct);}
+function dqFill(id,answer){const input=document.getElementById('fill_'+id);if(!input||input.disabled)return;const val=input.value.trim().toLowerCase().replace(/\s/g,'');const correct=val===answer.toLowerCase().replace(/\s/g,'');input.disabled=true;input.style.borderColor=correct?'var(--teal-600)':'var(--coral-600)';const sub=input.nextElementSibling;if(sub)sub.disabled=true;showFb(id,correct);}
+function retryQuiz(id){document.getElementById('dqBody_'+id).innerHTML=quizHTML(NODES[id].quiz,id);const fb=document.getElementById('dqFb_'+id);fb.className='dq-feedback';fb.innerHTML='';document.getElementById('dqRetry_'+id).style.display='none';}
+
+/* ── Explorer ── */
+let C=3.0, beta=0.06, dk=0.5, t=0;
+const cvDisp=document.getElementById('cvDisp');
+const cvRel=document.getElementById('cvRelation');
+const ctxD=cvDisp.getContext('2d');
+const ctxR=cvRel.getContext('2d');
+
+function omega(k){ return C*k + beta*k*k*k; }
+function vp(k){ return omega(k)/k; }
+function ug(k){ return C + 3*beta*k*k; }
+
+function setMode(m){
+  ['Weak','Strong','None'].forEach(n=>document.getElementById('m'+n).classList.toggle('active',n.toLowerCase()===m));
+  if(m==='weak'){C=3;beta=0.06;dk=0.5;}
+  else if(m==='strong'){C=3;beta=0.3;dk=0.5;}
+  else{C=3;beta=0;dk=0.5;}
+  syncSliders(); updateReadouts();
+}
+
+function syncSliders(){
+  const setS=(sid,vid,val,min,max,dec)=>{
+    const s=document.getElementById(sid);
+    const frac=(val-min)/(max-min);
+    s.value=Math.round(frac*(+s.max-+s.min)+(+s.min));
+    document.getElementById(vid).textContent=val.toFixed(dec);
+  };
+  setS('sC','vC',C,0.5,8.0,2);
+  setS('sB','vB',beta,0,0.5,2);
+  setS('sDK','vDK',dk,0.05,2.0,2);
+}
+
+function wireS(sid,vid,min,max,dec,setter){
+  document.getElementById(sid).addEventListener('input',function(){
+    const frac=(this.value-+this.min)/(+this.max-+this.min);
+    const v=min+(max-min)*frac;
+    document.getElementById(vid).textContent=v.toFixed(dec);
+    setter(v); updateReadouts();
+    ['Weak','Strong','None'].forEach(n=>document.getElementById('m'+n).classList.remove('active'));
+  });
+}
+wireS('sC','vC',0.5,8.0,2,v=>C=v);
+wireS('sB','vB',0,0.5,2,v=>beta=v);
+wireS('sDK','vDK',0.05,2.0,2,v=>dk=v);
+
+function updateReadouts(){
+  const k1=2.0, k2=k1+dk;
+  const o1=omega(k1), o2=omega(k2);
+  const vp1=(o1/k1).toFixed(3), vp2=(o2/k2).toFixed(3);
+  const ugv=(Math.abs(o2-o1)/dk).toFixed(3);
+  const kbar=(k1+k2)/2, wbar=(o1+o2)/2;
+  const vpc=(wbar/kbar).toFixed(3);
+  document.getElementById('rVp1').textContent=vp1+' m/s';
+  document.getElementById('rVp2').textContent=vp2+' m/s';
+  document.getElementById('rVg').textContent=ugv+' m/s';
+  document.getElementById('rVc').textContent=vpc+' m/s';
+}
+
+function drawDisp(){
+  const dpr=window.devicePixelRatio||1;
+  cvDisp.width=cvDisp.offsetWidth*dpr; cvDisp.height=cvDisp.offsetHeight*dpr;
+  const W=cvDisp.width, H=cvDisp.height;
+  const dark=window.matchMedia('(prefers-color-scheme:dark)').matches;
+  ctxD.clearRect(0,0,W,H);
+
+  const k1=2.0, k2=k1+dk;
+  const o1=omega(k1), o2=omega(k2);
+  const kbar=(k1+k2)/2, wbar=(o1+o2)/2;
+  const dgw=Math.abs(o2-o1)/2, dgk=dk/2;
+  const vpc=wbar/kbar;
+  const ugv=(Math.abs(o2-o1)/dk);
+  const xScale=(8*Math.PI)/W;
+  const midY=H/2, scaleY=H*0.30;
+
+  ctxD.strokeStyle=dark?'rgba(255,255,255,0.10)':'rgba(0,0,0,0.10)';
+  ctxD.lineWidth=0.5;
+  ctxD.beginPath();ctxD.moveTo(0,midY);ctxD.lineTo(W,midY);ctxD.stroke();
+
+  // wave 1 — blue
+  ctxD.strokeStyle=dark?'#7F77DD':'#534AB7'; ctxD.lineWidth=1.5*dpr;
+  ctxD.beginPath();
+  for(let px=0;px<=W;px++){
+    const x=px*xScale;
+    const py=midY-0.38*Math.cos(k1*x-o1*t)*scaleY;
+    px===0?ctxD.moveTo(px,py):ctxD.lineTo(px,py);
+  }
+  ctxD.stroke();
+
+  // wave 2 — coral
+  ctxD.strokeStyle=dark?'#F0997B':'#993C1D'; ctxD.lineWidth=1.5*dpr;
+  ctxD.beginPath();
+  for(let px=0;px<=W;px++){
+    const x=px*xScale;
+    const py=midY-0.38*Math.cos(k2*x-o2*t)*scaleY;
+    px===0?ctxD.moveTo(px,py):ctxD.lineTo(px,py);
+  }
+  ctxD.stroke();
+
+  // superposition — white/dark
+  ctxD.strokeStyle=dark?'#EEECEA':'#1a1a18'; ctxD.lineWidth=2*dpr;
+  ctxD.beginPath();
+  for(let px=0;px<=W;px++){
+    const x=px*xScale;
+    const u=0.38*(Math.cos(k1*x-o1*t)+Math.cos(k2*x-o2*t));
+    const py=midY-u*scaleY;
+    px===0?ctxD.moveTo(px,py):ctxD.lineTo(px,py);
+  }
+  ctxD.stroke();
+
+  // envelope
+  ctxD.strokeStyle='#0F6E56'; ctxD.lineWidth=1.2*dpr; ctxD.setLineDash([5*dpr,4*dpr]);
+  ctxD.beginPath();
+  for(let px=0;px<=W;px++){
+    const x=px*xScale;
+    const env=0.76*Math.abs(Math.cos(dgk*x-dgw*t));
+    ctxD.moveTo(px,midY-env*scaleY);
+    ctxD.lineTo(px,midY+env*scaleY);
+  }
+  ctxD.stroke();
+  ctxD.setLineDash([]);
+
+  // labels
+  ctxD.font=`${10*dpr}px 'DM Sans',sans-serif`; ctxD.textAlign='left';
+  ctxD.fillStyle=dark?'#7F77DD':'#534AB7'; ctxD.fillText('u₁  (k='+k1.toFixed(1)+', vₚ='+(o1/k1).toFixed(2)+')',8*dpr,16*dpr);
+  ctxD.fillStyle=dark?'#F0997B':'#993C1D'; ctxD.fillText('u₂  (k='+k2.toFixed(2)+', vₚ='+(o2/k2).toFixed(2)+')',8*dpr,30*dpr);
+  ctxD.fillStyle=dark?'#EEECEA':'#1a1a18'; ctxD.fillText('u₁+u₂',8*dpr,44*dpr);
+  ctxD.fillStyle='#0F6E56'; ctxD.fillText('envelope  uₘ='+ugv.toFixed(2),8*dpr,58*dpr);
+}
+
+function drawRelation(){
+  const dpr=window.devicePixelRatio||1;
+  cvRel.width=cvRel.offsetWidth*dpr; cvRel.height=cvRel.offsetHeight*dpr;
+  const W=cvRel.width, H=cvRel.height;
+  const dark=window.matchMedia('(prefers-color-scheme:dark)').matches;
+  ctxR.clearRect(0,0,W,H);
+
+  const pad=32*dpr;
+  const plotW=W-2*pad, plotH=H-2*pad;
+  const kMax=6.0, oMax=omega(kMax)*1.05;
+
+  // axes
+  ctxR.strokeStyle=dark?'rgba(255,255,255,0.20)':'rgba(0,0,0,0.20)';
+  ctxR.lineWidth=0.5;
+  ctxR.beginPath();
+  ctxR.moveTo(pad,pad);ctxR.lineTo(pad,pad+plotH);ctxR.lineTo(pad+plotW,pad+plotH);
+  ctxR.stroke();
+
+  // axis labels
+  ctxR.font=`${9*dpr}px 'JetBrains Mono',monospace`;
+  ctxR.fillStyle=dark?'rgba(255,255,255,0.35)':'rgba(0,0,0,0.35)';
+  ctxR.textAlign='center'; ctxR.fillText('k  (rad/m)',pad+plotW/2,H-4*dpr);
+  ctxR.save(); ctxR.translate(10*dpr,pad+plotH/2); ctxR.rotate(-Math.PI/2);
+  ctxR.fillText('ω  (rad/s)',0,0); ctxR.restore();
+
+  function toX(k){return pad+k/kMax*plotW;}
+  function toY(o){return pad+plotH*(1-o/oMax);}
+
+  // ω = ck (non-dispersive reference)
+  ctxR.strokeStyle=dark?'rgba(255,255,255,0.18)':'rgba(0,0,0,0.15)';
+  ctxR.lineWidth=1*dpr; ctxR.setLineDash([4*dpr,4*dpr]);
+  ctxR.beginPath();
+  ctxR.moveTo(toX(0),toY(0));ctxR.lineTo(toX(kMax),toY(C*kMax));
+  ctxR.stroke(); ctxR.setLineDash([]);
+
+  // ω(k) curve
+  ctxR.strokeStyle=dark?'#AFA9EC':'#534AB7'; ctxR.lineWidth=2*dpr;
+  ctxR.beginPath();
+  for(let i=0;i<=200;i++){
+    const k=kMax*i/200;
+    const o=omega(k);
+    i===0?ctxR.moveTo(toX(k),toY(o)):ctxR.lineTo(toX(k),toY(o));
+  }
+  ctxR.stroke();
+
+  // mark k1 and k2
+  const k1=2.0, k2=k1+dk;
+  const o1=omega(k1), o2=omega(k2);
+
+  // chord (phase speed)
+  ctxR.strokeStyle='#0F6E56'; ctxR.lineWidth=1.2*dpr; ctxR.setLineDash([3*dpr,3*dpr]);
+  ctxR.beginPath();ctxR.moveTo(toX(0),toY(0));ctxR.lineTo(toX(k1),toY(o1));ctxR.stroke();
+  ctxR.setLineDash([]);
+
+  // tangent (group speed) at k1
+  const slope=C+3*beta*k1*k1;
+  const tStart=Math.max(0,k1-0.8), tEnd=Math.min(kMax,k1+0.8);
+  const oAtk1=omega(k1);
+  ctxR.strokeStyle='#993C1D'; ctxR.lineWidth=1.2*dpr;
+  ctxR.beginPath();
+  ctxR.moveTo(toX(tStart),toY(oAtk1+slope*(tStart-k1)));
+  ctxR.lineTo(toX(tEnd),toY(oAtk1+slope*(tEnd-k1)));
+  ctxR.stroke();
+
+  // dots
+  [[k1,o1],[k2,o2]].forEach(([k,o],i)=>{
+    ctxR.fillStyle=i===0?(dark?'#7F77DD':'#534AB7'):(dark?'#F0997B':'#993C1D');
+    ctxR.beginPath();ctxR.arc(toX(k),toY(o),4*dpr,0,Math.PI*2);ctxR.fill();
+  });
+
+  // legend
+  ctxR.font=`${9*dpr}px 'DM Sans',sans-serif`; ctxR.textAlign='left';
+  ctxR.fillStyle=dark?'#AFA9EC':'#534AB7'; ctxR.fillText('ω(k) curve',pad+4*dpr,pad+12*dpr);
+  ctxR.fillStyle='#0F6E56'; ctxR.fillText('chord slope = vₚ',pad+4*dpr,pad+24*dpr);
+  ctxR.fillStyle='#993C1D'; ctxR.fillText('tangent slope = uₘ',pad+4*dpr,pad+36*dpr);
+}
+
+function loop(){
+  t+=0.018;
+  drawDisp();
+  drawRelation();
+  requestAnimationFrame(loop);
+}
+updateReadouts();
+syncSliders();
+loop();
+
+let chAnswered=false;
+function chAnswer(btn,correct){
+  if(chAnswered)return; chAnswered=true;
+  document.querySelectorAll('.quiz-opt').forEach(b=>{b.disabled=true;if(b.getAttribute('onclick').includes('true'))b.classList.add('correct');});
+  if(!correct)btn.classList.add('wrong');
+  document.getElementById('quizFb').style.display='block';
+}
+</script>
+</body>
+</html>

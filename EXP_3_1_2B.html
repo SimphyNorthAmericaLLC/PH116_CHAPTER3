@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>WAVE_SUPERPOSITION_FFT_LAB_v3</title>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+
+<style>
+body{background:#1e1e1e;color:white;font-family:monospace;padding:15px;}
+.editor{display:flex;border:1px solid #444;height:340px;}
+#lineNumbers{background:#111;color:#00ff00;padding:10px 8px;margin:0;text-align:right;overflow:hidden;white-space:pre;}
+#code{flex:1;background:#111;color:white;border:none;padding:10px;resize:none;overflow:auto;white-space:pre;}
+button{margin-top:10px;margin-right:10px;padding:8px 14px;background:#007acc;color:white;border:none;cursor:pointer;}
+#plotBox{margin-top:15px;background:white;padding:10px;display:none;}
+#plotBox img{max-width:100%;}
+#fftPlot{margin-top:15px;background:white;}
+</style>
+</head>
+
+<body>
+
+<h3>Wave Superposition + FFT (Lab Version)</h3>
+
+<div class="editor">
+<pre id="lineNumbers"></pre>
+<textarea id="code" wrap="off">import numpy as np
+import matplotlib.pyplot as plt
+import json
+
+plt.rcParams['figure.facecolor'] = 'white'
+plt.rcParams['axes.facecolor'] = 'white'
+
+# ===== UPDATED DEFAULTS (VISIBLE ALL CURVES) =====
+wave1 = "np.cos(2*x - 10*t)"
+wave2 = "np.cos(2.5*x - 10.8*t)"
+
+x = np.linspace(0, 10, 400)
+t = np.linspace(0, 100, 4000)
+
+X, T = np.meshgrid(x, t)
+
+context = {"np": np, "x": X, "t": T}
+
+u1 = eval(wave1, context)
+u2 = eval(wave2, context)
+u = u1 + u2
+
+signal = u[:, 0]
+dt = t[1] - t[0]
+
+freq = np.fft.fftfreq(len(signal), dt)
+fft_vals = np.abs(np.fft.fft(signal))
+
+mask = freq > 0
+freq = freq[mask]
+fft_vals = fft_vals[mask]
+
+envelope = np.abs(signal)
+env_freq = np.fft.fftfreq(len(envelope), dt)
+env_fft = np.abs(np.fft.fft(envelope))
+
+mask = env_freq > 0
+env_freq = env_freq[mask]
+env_fft = env_fft[mask]
+
+fig, axs = plt.subplots(2, 1, figsize=(10, 8))
+
+# ---- TOP: show both waves + superposition ----
+axs[0].plot(x, u[0], label="Superposition", linewidth=2)
+axs[0].plot(x, u1[0], '--', label="Wave 1", alpha=0.6)
+axs[0].plot(x, u2[0], '--', label="Wave 2", alpha=0.6)
+axs[0].set_title("Waves at t=0")
+axs[0].legend()
+axs[0].grid()
+
+# ---- SIGNAL ----
+axs[1].plot(t, signal)
+axs[1].set_title("Signal (Beats)")
+axs[1].grid()
+
+plt.tight_layout()
+
+fft_data = {
+    "freq": freq.tolist(),
+    "fft": fft_vals.tolist(),
+    "env_freq": env_freq.tolist(),
+    "env_fft": env_fft.tolist()
+}
+
+with open("fft.json", "w") as f:
+    json.dump(fft_data, f)
+</textarea>
+</div>
+
+<button onclick="run()">Run Code</button>
+
+<div id="plotBox">
+<img id="plot1">
+</div>
+
+<div id="fftPlot"></div>
+
+<script>
+const codeEl=document.getElementById("code");
+const lineNumbers=document.getElementById("lineNumbers");
+const plotBox=document.getElementById("plotBox");
+
+function updateLineNumbers(){
+    const lines=codeEl.value.split("\n").length;
+    let nums="";
+    for(let i=1;i<=lines;i++) nums+=i+"\n";
+    lineNumbers.textContent=nums;
+}
+
+codeEl.addEventListener("input", updateLineNumbers);
+codeEl.addEventListener("scroll", ()=> lineNumbers.scrollTop = codeEl.scrollTop);
+updateLineNumbers();
+
+let pyodideReady = loadPyodide();
+
+async function run(){
+    plotBox.style.display="none";
+
+    let pyodide = await pyodideReady;
+    await pyodide.loadPackage(["numpy","matplotlib"]);
+
+    await pyodide.runPythonAsync(`
+import base64
+from io import BytesIO
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+plt.close('all')
+`);
+
+    await pyodide.runPythonAsync(codeEl.value);
+
+    let img = await pyodide.runPythonAsync(`
+from io import BytesIO
+import base64
+buf=BytesIO()
+plt.savefig(buf,format="png")
+buf.seek(0)
+base64.b64encode(buf.read()).decode()
+`);
+
+    document.getElementById("plot1").src="data:image/png;base64,"+img;
+    plotBox.style.display="block";
+
+    let fft_json = pyodide.FS.readFile("fft.json", {encoding: "utf8"});
+    let fftData = JSON.parse(fft_json);
+
+    Plotly.newPlot('fftPlot', [
+        {x: fftData.freq, y: fftData.fft, mode: 'lines', name: 'Signal FFT'},
+        {x: fftData.env_freq, y: fftData.env_fft, mode: 'lines', name: 'Envelope FFT'}
+    ], {
+        title: "FFT Analysis",
+        xaxis: {title: "Frequency"},
+        yaxis: {title: "Magnitude"}
+    });
+}
+</script>
+
+</body>
+</html>

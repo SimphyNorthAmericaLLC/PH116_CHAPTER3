@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Fabry–Perot Interferometer (Microwave)</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; }
+  canvas { border: 1px solid #444; background: #fafafa; }
+</style>
+</head>
+
+<body>
+
+<h2>Microwave Fabry–Perot Interferometer</h2>
+<p>Transmission increases at cavity resonance</p>
+
+<canvas id="c" width="900" height="260"></canvas><br>
+
+Mirror separation (in wavelengths):
+<input type="range" id="dslider" min="0.5" max="4" step="0.01" value="2">
+<span id="dval">2.00</span>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+const lambda = 90;   // pixels per wavelength
+const R = 0.6;       // mirror reflectivity
+const F = 4*R/((1-R)*(1-R));
+let t = 0;
+
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  const dλ = parseFloat(dslider.value);
+  document.getElementById("dval").innerText = dλ.toFixed(2);
+  const d = dλ * lambda;
+
+  const xL = 250;
+  const xR = xL + d;
+  const k = 2*Math.PI/lambda;
+
+  // Phase and transmission factor
+  const delta = 4*Math.PI*d/lambda;
+  const T = 1/Math.sqrt(1 + F*Math.sin(delta/2)**2);
+
+  // Draw mirrors
+  ctx.fillStyle = "rgba(0,0,255,0.4)";
+  ctx.fillRect(xL-4, 20, 8, 220);
+  ctx.fillRect(xR-4, 20, 8, 220);
+
+  // Draw wave
+  ctx.beginPath();
+  ctx.strokeStyle = "black";
+  ctx.lineWidth = 2;
+
+  for (let x=0; x<canvas.width; x++) {
+    let y = 130;
+
+    // Incident wave
+    if (x < xL) {
+      y += 15*Math.sin(k*x + t);
+    }
+
+    // Standing wave inside cavity
+    else if (x >= xL && x <= xR) {
+      const sw =
+        Math.sin(k*(x-xL)+t) +
+        Math.sin(k*(xR-x)+t);
+      y += 30*sw;
+    }
+
+    // Transmitted wave (MODULATED!)
+    else {
+      y += 15*T*Math.sin(k*x + t);
+    }
+
+    ctx.lineTo(x,y);
+  }
+
+  ctx.stroke();
+
+  // Labels
+  ctx.fillStyle = "black";
+  ctx.fillText("Transmitter", 120, 30);
+  ctx.fillText("Fabry–Perot cavity", xL+20, 30);
+  ctx.fillText("Receiver signal ∝ transmission", xR+40, 30);
+}
+
+function animate() {
+  t += 0.05;
+  draw();
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+</body>
+</html>

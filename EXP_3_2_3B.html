@@ -1,0 +1,126 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Chapter 3 Mastery Map</title>
+<style>
+body{font-family:Arial;background:#f4f4f4;margin:20px}
+h1{text-align:center}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:1200px;margin:auto}
+.node{background:#ffcccc;border:2px solid #444;border-radius:10px;padding:12px;cursor:pointer}
+.node:hover{transform:scale(1.02)}
+#panel{max-width:1000px;margin:20px auto;background:white;padding:20px;border:2px solid #444;border-radius:10px}
+.question{border:1px solid #ccc;padding:10px;margin:10px 0;border-radius:8px}
+.feedback{font-weight:bold;margin-top:6px}
+.score{font-size:20px;font-weight:bold}
+button{margin:4px;padding:8px}
+</style>
+</head>
+<body>
+<h1>Chapter 3 Interactive Mastery Map</h1>
+<div class="grid" id="grid"></div>
+<div id="panel"><h2>Select a concept node</h2></div>
+
+<script>
+const topics=[
+["Superposition Principle",[
+["The wave equation is:",["Linear","Nonlinear","Random","Undefined"],0],
+["Superposition means:",["Add wave functions","Multiply them","Subtract only","Average only"],0],
+["Interference occurs when waves:",["Overlap in space","Have same amplitude","Stop moving","Are standing"],0]
+]],
+["Beats",[
+["Beats occur when frequencies are:",["Close","Equal to zero","Infinite","Unrelated"],0],
+["The envelope is the:",["Slow variation","Fast carrier","Node","Antinode"],0],
+["Beats were linked to:",["Driving frequency near natural frequency","No forcing","Reflection only","Dispersion only"],0]
+]],
+["Group Speed",[
+["Group speed is:",["Δω/Δk","ω/k","k/ω","ωΔk"],0],
+["Group speed tracks the:",["Envelope","Carrier only","Node","Amplitude"],0],
+["Group speed is most meaningful when:",["Wavenumbers are nearby","Very far apart","Amplitude is zero","Frequency is zero"],0]
+]],
+["Standing Waves",[
+["Standing waves come from:",["Opposite traveling waves","One wave","Three waves","Noise"],0],
+["Nodes have:",["Zero amplitude","Maximum amplitude","Infinite amplitude","Random amplitude"],0],
+["Antinodes have:",["Maximum amplitude","Zero amplitude","No energy","No motion"],0]
+]],
+["Tube Resonance",[
+["Open-closed tube frequencies:",["(2n−1)v/4L","nv/2L","v/L","2v/L"],0],
+["Closed end is a:",["Node","Antinode","Beat","Carrier"],0],
+["Open end is an:",["Antinode","Node","Beat","Envelope"],0]
+]],
+["Fabry-Perot",[
+["Uses:",["Two partial reflectors","One mirror","One prism","One lens"],0],
+["Resonances repeat every:",["λ/2","λ","2λ","λ/4"],0],
+["Fabry-Perot cavities are used in:",["Lasers","Batteries","Motors","Speakers"],0]
+]],
+["Wave Uncertainty",[
+["Small Δk gives:",["Large envelope extent","Small envelope extent","No effect","Zero speed"],0],
+["Localization requires:",["Spectral spread","Single wavelength only","Zero frequency","Infinite amplitude"],0],
+["This foreshadows:",["Quantum uncertainty","Newton's law","Thermodynamics","Electrostatics"],0]
+]],
+["Dispersive Media",[
+["In dispersive media:",["Different frequencies travel differently","All travel same speed","No interference","No wavelength"],0],
+["Example:",["White light in a prism","Ideal string","Vacuum only","Standing wave"],0],
+["Carrier and envelope can move:",["At different speeds","At same speed always","Not move","Randomly"],0]
+]],
+["Prism Dispersion",[
+["Entering a prism changes:",["Wavelength","Frequency","Neither","Both equally"],0],
+["Frequency across boundary:",["Remains constant","Changes","Becomes zero","Doubles"],0],
+["White light separates because:",["Medium is dispersive","Frequency changes at boundary","Energy lost","Reflection only"],0]
+]]
+];
+
+const grid=document.getElementById("grid");
+const panel=document.getElementById("panel");
+
+topics.forEach((t,i)=>{
+ let d=document.createElement("div");
+ d.className="node";
+ d.id="node"+i;
+ d.innerHTML="<h3>"+t[0]+"</h3><p>"+t[1].length+" questions</p>";
+ d.onclick=()=>openTopic(i);
+ grid.appendChild(d);
+});
+
+function openTopic(i){
+ let qs=topics[i][1];
+ let correct=0,answered=0;
+ panel.innerHTML="<h2>"+topics[i][0]+"</h2><div class='score' id='score'>0/"+qs.length+"</div>";
+
+ qs.forEach((q)=>{
+   let box=document.createElement("div");
+   box.className="question";
+   box.innerHTML="<b>"+q[0]+"</b><br>";
+   let fb=document.createElement("div");
+   fb.className="feedback";
+
+   q[1].forEach((choice,ci)=>{
+      let b=document.createElement("button");
+      b.textContent=choice;
+      b.onclick=()=>{
+         if(box.dataset.done) return;
+         box.dataset.done=1;
+         answered++;
+         if(ci===q[2]){correct++; fb.innerHTML="✅ Correct"; fb.style.color="green";}
+         else {fb.innerHTML="❌ Incorrect"; fb.style.color="red";}
+         box.querySelectorAll("button").forEach(x=>x.disabled=true);
+         document.getElementById("score").innerHTML=correct+"/"+qs.length;
+
+         if(answered===qs.length){
+            let node=document.getElementById("node"+i);
+            if(correct===qs.length) node.style.background="#b6f5b6";
+            else if(correct>=qs.length/2) node.style.background="#fff4a3";
+            else node.style.background="#ffb3b3";
+         }
+      };
+      box.appendChild(b);
+   });
+
+   box.appendChild(fb);
+   panel.appendChild(box);
+ });
+}
+</script>
+</body>
+</html>
