@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Standing Waves in Air Columns</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;padding:28px 16px 40px;background:#0c1220;color:#eef4ff;font-family:Arial,Helvetica,sans-serif;text-align:center}.widget{width:min(940px,100%);margin:auto;padding:24px;border:1px solid #2d4267;border-radius:18px;background:#121c30;box-shadow:0 14px 35px #0005}h2{margin:0 0 20px;color:#78d7ff}.controls{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:18px 28px;margin-bottom:18px}.control{min-width:245px;text-align:left}label{display:block;margin-bottom:7px;font-weight:bold}select,input[type=range]{width:100%}select{padding:9px 10px;border:1px solid #55739e;border-radius:8px;background:#0d1729;color:#fff}.readout{display:grid;grid-template-columns:repeat(3,minmax(150px,1fr));gap:10px;margin:14px 0 18px}.card{padding:12px;border-radius:10px;background:#0d1729;border:1px solid #263d61}.card strong{display:block;margin-top:5px;color:#ffd166}.equation{margin:4px 0 18px;padding:11px;color:#dcecff;background:#182640;border-radius:9px}.chart-wrap{position:relative;height:420px;padding:12px;border-radius:12px;background:#fff}.ends{display:flex;justify-content:space-between;margin:9px 8px 0;color:#bcd4f5;font-weight:bold}.note{margin:15px 0 0;color:#b8c8df;font-size:.94rem}@media(max-width:650px){.readout{grid-template-columns:1fr}.chart-wrap{height:330px}}
+</style></head><body>
+<main class="widget">
+<h2>Standing Waves in a 1 m Air Column</h2>
+<div class="controls">
+ <div class="control"><label for="tubeType">Boundary conditions</label><select id="tubeType"><option value="openClosed">Open–Closed</option><option value="closedClosed">Closed–Closed</option></select></div>
+ <div class="control"><label for="modeSlider">Mode number: <span id="modeValue">1</span></label><input type="range" id="modeSlider" min="1" max="10" value="1" step="1"></div>
+</div>
+<div class="readout"><div class="card">Allowed harmonic<strong id="harmonicValue"></strong></div><div class="card">Wavelength<strong id="wavelengthValue"></strong></div><div class="card">Frequency<strong id="freqValue"></strong></div></div>
+<div class="equation" id="equation"></div>
+<div class="chart-wrap"><canvas id="waveChart"></canvas></div>
+<div class="ends"><span id="leftEnd"></span><span id="rightEnd"></span></div>
+<p class="note">The graph shows air-displacement amplitude: closed ends are nodes and open ends are antinodes.</p>
+</main>
+<script>
+const L=1,v=343,ctx=document.getElementById('waveChart').getContext('2d');let chart;
+function ordinal(n){const m=n%100;if(m>=11&&m<=13)return n+'th';return n+({1:'st',2:'nd',3:'rd'}[n%10]||'th')}
+function generateData(mode,type){
+ const wave=[],nodes=[],antinodes=[];let k;
+ if(type==='openClosed'){
+  k=(2*mode-1)*Math.PI/(2*L);
+  for(let i=0;i<=400;i++){const x=i*L/400;wave.push({x,y:Math.cos(k*x)})}
+  for(let j=0;j<2*mode;j++){const x=j*L/(2*mode-1);if(x>L+1e-9)break;(j%2===0?antinodes:nodes).push({x,y:j%2===0?Math.cos(k*x):0})}
+ }else{
+  k=mode*Math.PI/L;
+  for(let i=0;i<=400;i++){const x=i*L/400;wave.push({x,y:Math.sin(k*x)})}
+  for(let j=0;j<=2*mode;j++){const x=j*L/(2*mode);(j%2===0?nodes:antinodes).push({x,y:j%2===0?0:Math.sin(k*x)})}
+ }
+ return{wave,nodes,antinodes}
+}
+function updateChart(){
+ const mode=Number(document.getElementById('modeSlider').value),type=document.getElementById('tubeType').value,oc=type==='openClosed';
+ const harmonic=oc?2*mode-1:mode,wavelength=oc?4*L/harmonic:2*L/harmonic,frequency=v/wavelength,data=generateData(mode,type);
+ document.getElementById('modeValue').textContent=mode;
+ document.getElementById('harmonicValue').textContent=harmonic===1?'1st (fundamental)':ordinal(harmonic)+(oc?' (odd only)':'');
+ document.getElementById('wavelengthValue').textContent=wavelength.toFixed(3)+' m';
+ document.getElementById('freqValue').textContent=frequency.toFixed(2)+' Hz';
+ document.getElementById('leftEnd').textContent=oc?'Open end — antinode':'Closed end — node';
+ document.getElementById('rightEnd').textContent='Closed end — node';
+ document.getElementById('equation').innerHTML=oc?'<i>f</i><sub>m</sub> = (2<i>m</i> − 1)<i>v</i>/(4<i>L</i>), &nbsp; <i>m</i> = 1, 2, 3, … &nbsp; (harmonics 1, 3, 5, …)':'<i>f</i><sub>m</sub> = <i>mv</i>/(2<i>L</i>), &nbsp; <i>m</i> = 1, 2, 3, … &nbsp; (all harmonics)';
+ if(chart)chart.destroy();
+ chart=new Chart(ctx,{type:'line',data:{datasets:[
+  {label:'Displacement amplitude',data:data.wave,parsing:false,borderColor:'#1769aa',borderWidth:3,pointRadius:0,tension:0,fill:false},
+  {label:'Nodes',data:data.nodes,parsing:false,type:'scatter',pointRadius:6,pointBackgroundColor:'#e63946'},
+  {label:'Antinodes',data:data.antinodes,parsing:false,type:'scatter',pointRadius:6,pointBackgroundColor:'#2a9d4b'}
+ ]},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'nearest',intersect:false},plugins:{legend:{labels:{color:'#172033'}},tooltip:{callbacks:{label:c=>c.dataset.label+': x = '+c.parsed.x.toFixed(3)+' m'}}},scales:{x:{type:'linear',min:0,max:L,title:{display:true,text:'Position along tube (m)',color:'#172033'},ticks:{color:'#172033'},grid:{color:'#dce3eb'}},y:{min:-1.15,max:1.15,title:{display:true,text:'Relative air displacement',color:'#172033'},ticks:{color:'#172033'},grid:{color:'#dce3eb'}}}}})
+}
+document.getElementById('modeSlider').addEventListener('input',updateChart);
+document.getElementById('tubeType').addEventListener('change',updateChart);
+updateChart();
+</script></body></html>
