@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>PH116 Exit Quiz</title>
+<style>
+body{font-family:system-ui,sans-serif;line-height:1.45;margin:0;padding:24px;background:radial-gradient(circle at top,#1b2745,#090a0f);color:#f2f2f2}
+#quiz3{max-width:760px;margin:auto;background:#121212;border:1px solid #2c2c2c;border-radius:18px;padding:24px}
+.progress-wrap{width:100%;height:10px;background:#222;border-radius:20px;overflow:hidden}
+#progress-bar{height:100%;width:0%;background:linear-gradient(90deg,#00d4ff,#00ff99)}
+.q3_option{display:block;width:100%;margin:8px 0;padding:12px;background:#181818;color:#fff;border:1px solid #333;border-radius:10px;text-align:left;cursor:pointer}
+.correct{color:#00ff88} .incorrect{color:#ff6666}
+</style></head><body>
+<div id="quiz3"><h1>PH116 Exit Quiz</h1><div>Chapter 3: One-Dimensional Wave Superposition</div>
+<div class="progress-wrap"><div id="progress-bar"></div></div>
+<h3 id="p"></h3><div id="s"></div><div id="o"></div><div id="f"></div><button id="r">Restart</button></div>
+<script>
+const quiz3=[
+{stem:'Why does the chapter classify the wave equation as "linear"?',choices:['Space and time variables get multiplied together in the equation','Space and time are independent variables that never appear multiplied together','The wave\'s amplitude must stay fixed at all times','Only sinusoidal functions are capable of solving it'],correctIndex:1},
+{stem:'In a non-dispersive medium, how are angular frequency (w) and wavenumber (k) related?',choices:['w equals c divided by k','w equals c times k, where c is the phase speed','w equals c times k squared','w does not depend on k at all'],correctIndex:1},
+{stem:'Applying cos A + cos B = 2 cos((A+B)/2) cos((A-B)/2) to u1 = cos(3x-5t) and u2 = cos(x-t), what is the resulting superposition?',choices:['u(x,t) = 2 cos(2x - 3t) cos(x - 2t)','u(x,t) = 2 cos(4x - 6t) cos(2x - 4t)','u(x,t) = cos(3x - 5t) - cos(x - t)','u(x,t) = 2 cos(x - 2t)'],correctIndex:0},
+{stem:'Both terms in u(x,t) = cos(2x - 6t) + cos(4x - 12t) share a common phase speed. What is it?',choices:['2 m/s','3 m/s','6 m/s','12 m/s'],correctIndex:1},
+{stem:'In the general expression u = 2A cos[(Dk x - Dw t)/2] cos[((k1+k2)x - (w1+w2)t)/2], what speed does the fast (carrier) term move at?',choices:['v_carrier = Dw/Dk','v_carrier = (w1+w2)/(k1+k2)','v_carrier = (w1*w2)/(k1*k2)','v_carrier = k1 + k2'],correctIndex:1},
+{stem:'How is the group speed of the slow (envelope) term mathematically defined?',choices:['u_g = (w1+w2)/(k1+k2)','u_g = Dw/Dk','u_g = c times k','u_g = k1 times k2'],correctIndex:1},
+{stem:'When k2 is set to 1.85, close to k1 = 2, in Experiment 3-1.2, what happens?',choices:['A standing wave with permanently fixed nodes appears','Beats appear, because w2 ends up close to w1','The waves cancel everywhere','Nothing changes compared to before'],correctIndex:1},
+{stem:"According to the chapter's rule of thumb, when does the group speed (envelope) actually matter physically?",choices:['Only when the two waves differ greatly in amplitude','Only when the two waves have similar, neighboring wavenumbers','Only when the waves move in opposite directions','Only when the medium is highly dispersive'],correctIndex:1},
+{stem:'Superimposing the rightward wave cos(2x - 6t) with its leftward counterpart cos(2x + 6t) produces:',choices:['u(x,t) = 2 cos(2x) cos(6t), a standing wave','u(x,t) = 2 cos(2x - 6t), still a traveling wave','u(x,t) = 0 everywhere, complete cancellation','u(x,t) = cos(4x) cos(12t)'],correctIndex:0},
+{stem:'For the standing wave u(x,t) = 2 cos(2x) cos(6t), where are the nodes (points of permanent zero amplitude) located?',choices:['Wherever cos(2x) equals +1 or -1','Wherever cos(2x) equals 0','Wherever cos(6t) equals 0','Wherever sin(2x) equals 0'],correctIndex:1},
+{stem:'For a tube closed at one end and open at the other, why is u(x,t) = A sin(kx) cos(wt) the more convenient choice?',choices:['Because it naturally gives zero displacement at the closed end (x = 0)','Because it gives maximum displacement at both ends','Because cosine-based solutions cannot satisfy any boundary conditions','Because it is mathematically simpler, even though it is not physically required'],correctIndex:0},
+{stem:'What expression gives the resonant frequencies of the open-closed tube?',choices:['f_n = n v / (2L)','f_n = (2n - 1) v / (4L)','f_n = v / (nL)','f_n = 2n v / L'],correctIndex:1},
+{stem:'Taking L = 1 m and v ~ 343 m/s for a tube closed at one end, what is the lowest resonant frequency (n=1)?',choices:['About 85.75 Hz','About 171.5 Hz','About 257.25 Hz','About 343 Hz'],correctIndex:0},
+{stem:'For the open-closed tube, as the mode number n runs through 1, 2, 3,..., what sequence of harmonics (2n-1) results?',choices:['2, 4, 6, ... (only even harmonics)','1, 3, 5, ... (only odd harmonics)','1, 2, 3, ... (every harmonic)','n squared'],correctIndex:1},
+{stem:'In a Fabry-Perot interferometer with resonance at L_n = n lambda/2, how far must the mirror spacing change to reach the next resonance?',choices:['By a full wavelength, DL = lambda','By half a wavelength, DL = lambda/2','By a quarter wavelength, DL = lambda/4','By two wavelengths, DL = 2 lambda'],correctIndex:1},
+{stem:'Comparing nearby wavelengths (1.00 m and 1.05 m) to more separated ones (1.0 m and 2.0 m), the chapter shows that shrinking the wavelength spread (smaller Dlambda, smaller Dk) causes the envelope spacing Dx to:',choices:['Shrink as well','Grow larger (the envelope becomes less localized)','Disappear, eliminating any standing wave','Stay exactly the same'],correctIndex:1},
+{stem:'What name does the chapter give to this trade-off between spectral spread and how localized the envelope is?',choices:["Snell's law",'The classical wave-theory uncertainty principle','The Doppler principle','The superposition theorem'],correctIndex:1},
+{stem:'How is the dispersion relation written for a dispersive medium?',choices:['w = ck, always strictly linear','w = ck + beta k^2 + ... , a polynomial in k','w = c / k','w stays constant regardless of k'],correctIndex:1},
+{stem:'As light enters a dispersive prism, which quantity changes and which one is preserved?',choices:['The frequency changes; the wavelength is preserved','Both the frequency and the wavelength change together','The wavelength (and wavenumber) changes; the frequency is preserved','Neither changes; only the amplitude is affected'],correctIndex:2},
+{stem:'For the lab pre-work tube with L = 1.3 m at mode n = 3, the node/anti-node transition frequency comes out closest to:',choices:['About 171 Hz','About 257 Hz','About 330 Hz','About 383 Hz'],correctIndex:2}
+];
+let idx=0,score=0;
+const p=document.getElementById('p'),s=document.getElementById('s'),o=document.getElementById('o'),f=document.getElementById('f');
+function shuffleQuestions(){for(let i=quiz3.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[quiz3[i],quiz3[j]]=[quiz3[j],quiz3[i]];}}
+function restartQuiz(){idx=0;score=0;shuffleQuestions();render();}
+function render(){
+document.getElementById('progress-bar').style.width=(idx/quiz3.length*100)+'%';
+p.textContent=`Question ${idx+1} of ${quiz3.length} . Score: ${score}/${quiz3.length}`;
+s.textContent=quiz3[idx].stem;o.innerHTML='';f.textContent='';
+'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach((L,i)=>{if(i<quiz3[idx].choices.length){let b=document.createElement('button');b.className='q3_option';b.innerHTML='<b>'+L+')</b> '+quiz3[idx].choices[i];b.onclick=()=>ans(i);o.appendChild(b);}});
+}
+function ans(i){if(i===quiz3[idx].correctIndex){score++;f.className='correct';f.textContent='Correct!';setTimeout(()=>{idx++;if(idx<quiz3.length)render();else{p.textContent=`Completed . Final Score: ${score}/${quiz3.length}`;s.textContent='Quiz finished.';o.innerHTML='';f.textContent='Press Restart to try again.';}},500);}
+else{f.className='incorrect';f.textContent='Incorrect -- restarting from Question 1...';setTimeout(restartQuiz,700);}}
+document.getElementById('r').onclick=restartQuiz;
+restartQuiz();
+</script></body></html>
