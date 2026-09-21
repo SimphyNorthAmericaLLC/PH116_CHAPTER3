@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Fabry–Perot Interferometer (Microwave)</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; }
+  canvas { border: 1px solid #444; background: #fafafa; }
+</style>
+</head>
+
+<body>
+
+<h2>Microwave Fabry–Perot Interferometer</h2>
+<p>Electric field in a cavity with partially transmitting mirrors</p>
+
+<canvas id="c" width="900" height="260"></canvas><br>
+
+Mirror separation (in wavelengths):
+<input type="range" id="dslider" min="0.5" max="4" step="0.01" value="2">
+<span id="dval">2.00</span>
+<br><br>
+Intracavity forward-wave amplitude buildup: <strong id="bval">1.58×</strong>
+<p style="max-width:760px;margin:18px auto;line-height:1.5">At resonance (L = nλ/2), the electric field has minima at both mirrors. These approach exact nodes as mirror reflectivity approaches 100%. Here the mirrors reflect 60% of the incident power, so the minima are not exact nodes.</p>
+<p style="max-width:760px;margin:18px auto;line-height:1.5">Black: incident field on the left, total field inside the cavity, and transmitted field on the right. Dashed red: reflected field. Each blue bar represents an idealized thin, lossless mirror with a phase-reversing reflection, not a perfectly conducting wall.</p>
+
+<script>
+const canvas = document.getElementById("c");
+const ctx = canvas.getContext("2d");
+
+const lambda = 90;   // pixels per wavelength
+const R = 0.6;       // mirror reflectivity
+const F = 4*R/((1-R)*(1-R));
+let t = 0;
+const dslider = document.getElementById("dslider");
+const mul = (a,b) => [a[0]*b[0]-a[1]*b[1], a[0]*b[1]+a[1]*b[0]];
+const phase = a => [Math.cos(a),Math.sin(a)];
+const field = (a,p) => mul(a,phase(p))[0];
+
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  const dλ = parseFloat(dslider.value);
+  document.getElementById("dval").innerText = dλ.toFixed(2);
+  const d = dλ * lambda;
+
+  const xL = 250;
+  const xR = xL + d;
+  const k = 2*Math.PI/lambda;
+
+  // Round-trip phase, transmitted amplitude, and intracavity buildup
+  const delta = 4*Math.PI*d/lambda;
+  const T = 1/Math.sqrt(1 + F*Math.sin(delta/2)**2);
+  const buildup = Math.sqrt(1-R) /
+    Math.sqrt((1-R)*(1-R) + 4*R*Math.sin(delta/2)**2);
+  document.getElementById("bval").innerText = buildup.toFixed(2) + "×";
+  // Lossless symmetric mirror scattering: r=-sqrt(R), tau=i*sqrt(1-R).
+  // A=tau/(1-R*exp(2ikd)); B=r*A*exp(2ikd).
+  const tau = [0,Math.sqrt(1-R)];
+  const r = -Math.sqrt(R);
+  const denRe = 1-R*Math.cos(delta);
+  const denIm = -R*Math.sin(delta);
+  const denAbs2 = denRe*denRe+denIm*denIm;
+  const A = [tau[1]*denIm/denAbs2,tau[1]*denRe/denAbs2];
+  const B = mul([r,0],mul(A,phase(delta)));
+  const leak = mul(tau,B);
+  const reflected = [r+leak[0],leak[1]];
+  const transmitted = mul(tau,mul(A,phase(k*d)));
+
+  // Draw mirrors
+  ctx.fillStyle = "rgba(0,0,255,0.4)";
+  ctx.fillRect(xL-4, 20, 8, 220);
+  ctx.fillRect(xR-4, 20, 8, 220);
+
+  // Direction arrow: transmitter to receiver
+  ctx.strokeStyle = "#c62828";
+  ctx.fillStyle = "#c62828";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(150, 72);
+  ctx.lineTo(215, 72);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(215, 72);
+  ctx.lineTo(205, 66);
+  ctx.lineTo(205, 78);
+  ctx.closePath();
+  ctx.fill();
+  ctx.font = "bold 13px Arial";
+  ctx.fillText("wave propagation", 145, 60);
+
+  // Draw wave
+  ctx.beginPath();
+  ctx.strokeStyle = "black";
+  ctx.lineWidth = 2;
+
+  for (let x=0; x<canvas.width; x++) {
+    let y = 130;
+
+    // Incident wave
+    if (x < xL) {
+      // sin(kx - wt) propagates toward increasing x: to the right.
+      y += 15*Math.cos(k*(x-xL) - t);
+    }
+
+    // Standing wave inside cavity
+    else if (x >= xL && x <= xR) {
+      const sw = field(A,k*(x-xL)-t) + field(B,-k*(x-xL)-t);
+      // The cavity field is strongest when d = m(lambda/2).
+      // Between resonances, phase mismatch reduces the field buildup.
+      y += 15*sw;
+    }
+
+    // Transmitted wave (MODULATED!)
+    else {
+      y += 15*field(transmitted,k*(x-xR)-t);
+    }
+
+    if (x === 0 || x === Math.ceil(xL) || x === Math.floor(xR)+1) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  }
+
+  ctx.stroke();
+
+  // Reflected component outside the input mirror, shown separately.
+  ctx.beginPath();
+  ctx.strokeStyle = "#c62828";
+  ctx.setLineDash([5,4]);
+  for (let x=0; x<xL; x++) {
+    const y=130+15*field(reflected,-k*(x-xL)-t);
+    if (x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Basic transmitter and receiver labels
+  ctx.font = "bold 14px Arial";
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#222";
+  ctx.fillText("TRANSMITTER", 90, 225);
+  ctx.fillText("RECEIVER", 810, 225);
+  ctx.font = "13px Arial";
+  ctx.fillText("emitted wave", 90, 244);
+  ctx.fillText("transmitted wave", 810, 244);
+  ctx.fillStyle = "#174ea6";
+  ctx.fillText("Reflector 1", xL, 16);
+  ctx.fillText("Reflector 2", xR, 16);
+  ctx.fillStyle = "#222";
+  ctx.fillText("Fabry–Perot cavity", (xL+xR)/2, 42);
+  ctx.textAlign = "start";
+}
+
+function animate() {
+  t += 0.05;
+  draw();
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+</body>
+</html>
